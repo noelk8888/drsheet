@@ -1,0 +1,1050 @@
+/* ==========================================================================
+   Design System & Variable Tokens
+   ========================================================================== */
+:root {
+    --bg-app: #0b0f19;
+    --bg-sidebar: rgba(17, 24, 39, 0.75);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --input-bg: rgba(31, 41, 55, 0.5);
+    --input-focus-border: #06b6d4;
+    --input-focus-glow: rgba(6, 182, 212, 0.25);
+    
+    /* Brand Colors */
+    --primary: #06b6d4;
+    --primary-hover: #0891b2;
+    --accent: #8b5cf6;
+    --success: #10b981;
+    --success-glow: rgba(16, 185, 129, 0.25);
+    
+    /* Spreadsheet Colors - Light Mode by default for printing */
+    --sheet-bg: #ffffff;
+    --sheet-text: #1f2937;
+    --sheet-text-gray: #6b7280;
+    --sheet-border: #e5e7eb;
+    --sheet-header-bg: #f9fafb;
+    --sheet-header-text: #4b5563;
+    --sheet-grid-line: #e5e7eb;
+    --sheet-highlight-bg: #eff6ff;
+    --sheet-highlight-border: #3b82f6;
+    --sheet-formula-bg: #f0fdf4;
+    --sheet-formula-border: #10b981;
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
+/* Dark Theme overrides for the spreadsheet itself (Optional) */
+[data-sheet-theme="dark"] {
+    --sheet-bg: #111827;
+    --sheet-text: #f9fafb;
+    --sheet-text-gray: #9ca3af;
+    --sheet-border: #374151;
+    --sheet-header-bg: #1f2937;
+    --sheet-header-text: #d1d5db;
+    --sheet-grid-line: #374151;
+    --sheet-highlight-bg: rgba(59, 130, 246, 0.15);
+    --sheet-highlight-border: #3b82f6;
+    --sheet-formula-bg: rgba(16, 185, 129, 0.15);
+    --sheet-formula-border: #10b981;
+}
+
+/* Reset and Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   Layout Architecture
+   ========================================================================== */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+}
+
+/* Control Panel (Sidebar) */
+.control-panel {
+    width: 380px;
+    background-color: var(--bg-sidebar);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid var(--border-color);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    overflow-y: auto;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.brand-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+.brand h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #ffffff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand .subtitle {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: block;
+}
+
+/* Sidebar Forms */
+.generator-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cell-tag {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+.input-wrapper input {
+    width: 100%;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem 1rem 0.75rem 2.25rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input-wrapper input:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 3px var(--input-focus-glow);
+}
+
+.input-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+/* Formula Tracing Card */
+.formula-card {
+    background: rgba(139, 92, 246, 0.06);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.formula-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #c084fc;
+}
+
+.formula-badge {
+    background: rgba(168, 85, 247, 0.2);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #e9d5ff;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    font-size: 0.65rem;
+}
+
+.formula-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+}
+
+.formula-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #cbd5e1;
+}
+
+.eq-cell {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.formula-list .desc {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-family: 'Inter', sans-serif;
+    margin-left: auto;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0891b2, #7c3aed);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+}
+
+.btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.btn-secondary {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.footer-note {
+    margin-top: auto;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+/* ==========================================================================
+   Spreadsheet Viewport (Right Area)
+   ========================================================================== */
+.sheet-viewport {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #0f131a;
+    overflow: hidden;
+    position: relative;
+}
+
+.viewport-header {
+    background-color: rgba(17, 24, 39, 0.4);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(8px);
+}
+
+.viewport-header h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.viewport-header p {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.viewport-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.btn-icon.active {
+    background-color: rgba(6, 182, 212, 0.15);
+    color: var(--primary);
+    border-color: rgba(6, 182, 212, 0.4);
+}
+
+/* Spreadsheet Page Container */
+.sheet-container {
+    flex-grow: 1;
+    padding: 2rem;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* ==========================================================================
+   Google Sheet Simulation Engine
+   ========================================================================== */
+.google-sheet {
+    background-color: var(--sheet-bg);
+    color: var(--sheet-text);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    width: 840px;
+    border: 1px solid var(--sheet-border);
+    font-size: 13px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    position: relative;
+    user-select: none;
+    transition: background-color var(--transition-normal), border-color var(--transition-normal);
+}
+
+/* Hide grid lines class toggle */
+.google-sheet.hide-grid .sheet-cell {
+    border-color: transparent !important;
+}
+.google-sheet.hide-grid .header-cell {
+    border-color: var(--sheet-border) !important;
+}
+
+/* Row & Cell Layout */
+.sheet-row {
+    display: flex;
+    min-height: 25px;
+}
+
+.sheet-row.header-row {
+    min-height: 24px;
+}
+
+/* Row number column indicator */
+.row-num-col {
+    width: 40px;
+    background-color: var(--sheet-header-bg);
+    border-right: 1px solid var(--sheet-border);
+    border-bottom: 1px solid var(--sheet-border);
+    color: var(--sheet-header-text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sheet-cell {
+    border-right: 1px solid var(--sheet-grid-line);
+    border-bottom: 1px solid var(--sheet-grid-line);
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+/* Specific Column widths */
+.col-a { width: 70px; flex-shrink: 0; }
+.col-b { width: 60px; flex-shrink: 0; }
+.col-c { width: 350px; flex-shrink: 0; }
+.col-d { width: 140px; flex-shrink: 0; }
+.col-e { width: 180px; flex-shrink: 0; }
+
+/* Spreadsheet Headers */
+.header-cell {
+    background-color: var(--sheet-header-bg);
+    color: var(--sheet-header-text);
+    font-weight: 600;
+    font-size: 11px;
+    justify-content: center;
+}
+
+/* Row 1: Brand title row */
+.sheet-row[data-row="1"] {
+    min-height: 50px;
+}
+.invoice-brand-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    justify-content: flex-start !important;
+    padding-left: 1rem;
+}
+
+/* Row 6: Invoice table headers */
+.sheet-row.table-header {
+    min-height: 30px;
+}
+.sheet-row.table-header .sheet-cell {
+    justify-content: center;
+}
+
+/* Row 38: Grand Total row */
+.sheet-row.total-row {
+    min-height: 55px; /* Increase row height for 100% bigger font */
+    background-color: var(--sheet-header-bg);
+}
+.sheet-row.total-row .sheet-cell {
+    border-top: 2px solid var(--sheet-text);
+    border-bottom: 2px double var(--sheet-text);
+    font-size: 26px !important; /* 100% bigger than base 13px */
+    font-weight: 700 !important;
+}
+/* Allow label to overflow leftwards into Column C since it is empty */
+.sheet-row.total-row .col-d {
+    overflow: visible;
+    white-space: nowrap;
+}
+
+/* Typography and alignment helper classes */
+.text-center { justify-content: center; text-align: center; }
+.text-right { justify-content: flex-end; text-align: right; }
+.text-left { justify-content: flex-start; text-align: left; }
+.text-bold { font-weight: 600; }
+.text-gray { color: var(--sheet-text-gray); }
+.bg-gray { background-color: var(--sheet-header-bg); }
+.font-mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+/* Interactive Cell selections */
+.cell-highlightable {
+    cursor: pointer;
+    position: relative;
+}
+
+.cell-highlightable:hover {
+    background-color: var(--sheet-highlight-bg);
+    box-shadow: inset 0 0 0 1px var(--sheet-highlight-border);
+}
+
+/* Selected active state (focus border) */
+.cell-highlightable.cell-selected {
+    background-color: var(--sheet-highlight-bg) !important;
+    box-shadow: inset 0 0 0 2px var(--sheet-highlight-border) !important;
+    z-index: 2;
+}
+
+/* Derived formula cells */
+.formula-derived {
+    background-color: var(--sheet-formula-bg);
+}
+
+.formula-derived::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 5px;
+    border-style: solid;
+    border-width: 0 5px 5px 0;
+    border-color: transparent var(--success) transparent transparent;
+}
+
+.formula-derived.cell-selected {
+    box-shadow: inset 0 0 0 2px var(--sheet-formula-border) !important;
+    background-color: var(--sheet-formula-bg) !important;
+}
+
+/* ==========================================================================
+   Folded Rows Accordion & Rows 11-27
+   ========================================================================== */
+.collapsed-rows-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    height: 32px;
+    background-color: var(--sheet-header-bg);
+    border-bottom: 1px solid var(--sheet-border);
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--sheet-text-gray);
+    font-weight: 500;
+    transition: all var(--transition-fast);
+}
+
+.collapsed-rows-indicator:hover {
+    background-color: var(--sheet-highlight-bg);
+    color: var(--sheet-highlight-border);
+}
+
+.indicator-line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: var(--sheet-border);
+    margin: 0 1rem;
+}
+
+.collapsible-rows {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsible-rows.expanded {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* ==========================================================================
+   Animations & Math Flow
+   ========================================================================== */
+@keyframes cell-pulse {
+    0% {
+        background-color: var(--sheet-highlight-bg);
+        box-shadow: 0 0 0 0px var(--sheet-highlight-border);
+    }
+    50% {
+        background-color: rgba(6, 182, 212, 0.3);
+        box-shadow: 0 0 10px 4px rgba(6, 182, 212, 0.4);
+    }
+    100% {
+        background-color: var(--sheet-formula-bg);
+        box-shadow: 0 0 0 0px transparent;
+    }
+}
+
+.pulse-animate {
+    animation: cell-pulse 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 3;
+}
+
+/* Canvas Overlay for connecting lines */
+#animation-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Floating calculation formula popups */
+.formula-popup-toast {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid var(--primary);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 101;
+    opacity: 0;
+    transform: translateY(5px) scale(0.95);
+    transition: opacity 0.25s, transform 0.25s;
+}
+
+.formula-popup-toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* ==========================================================================
+   Google Sheets Sync Card & Instructions Modal Dialog
+   ========================================================================== */
+.sync-section {
+    background: rgba(16, 185, 129, 0.04) !important;
+    border: 1px solid rgba(16, 185, 129, 0.12) !important;
+}
+
+.sync-section label {
+    color: #34d399 !important;
+}
+
+.sync-section .input-wrapper input:focus {
+    border-color: #34d399;
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    user-select: text;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.modal-content {
+    background-color: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    width: 620px;
+    max-width: 90%;
+    padding: 1.5rem;
+    color: #f8fafc;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modal-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+    font-family: 'Outfit', sans-serif;
+    color: #34d399;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.75rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-close-btn:hover {
+    color: white;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.modal-body p {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+}
+
+.instructions-steps {
+    padding-left: 1.25rem;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.instructions-steps a {
+    color: #34d399;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.instructions-steps a:hover {
+    text-decoration: underline;
+}
+
+.code-container {
+    position: relative;
+    background-color: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.25rem 0;
+}
+
+.code-container pre {
+    overflow-x: auto;
+    max-height: 180px;
+    margin: 0;
+}
+
+.code-container code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #38bdf8;
+    white-space: pre;
+    line-height: 1.4;
+}
+
+#btn-copy-code {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+
+/* Print-only elements hidden by default on screen */
+.print-only-label,
+.print-signature-block {
+    display: none;
+}
+
+/* ==========================================================================
+   Print / PDF CSS Rules
+   ========================================================================== */
+@media print {
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .app-container {
+        display: block;
+        width: 100%;
+    }
+    
+    /* Hide all control elements */
+    .control-panel,
+    .viewport-header,
+    #animation-canvas,
+    .formula-popup-toast,
+    .collapsed-rows-indicator {
+        display: none !important;
+    }
+    
+    .sheet-viewport {
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+    
+    .sheet-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        overflow: visible !important;
+        display: block;
+    }
+    
+    .google-sheet {
+        box-shadow: none !important;
+        border: none !important; /* Outer borders drawn by cell edges */
+        width: 100% !important;
+        max-width: 100% !important;
+        background: white !important;
+        color: black !important;
+        page-break-inside: avoid;
+    }
+
+    /* Hide row index column & column header row */
+    .row-num-col, 
+    .sheet-row.header-row {
+        display: none !important;
+    }
+
+    /* Hide UNIT column in print to collapse table to 4 columns */
+    .col-b {
+        display: none !important;
+    }
+
+    /* Force black borders and transparent backgrounds */
+    .sheet-cell {
+        border-color: #000000 !important;
+        color: #000000 !important;
+        background: transparent !important;
+    }
+
+    /* Hide horizontal borders inside table body, show vertical dividers */
+    .google-sheet .sheet-row:not(.header-row):not(.total-row) .sheet-cell {
+        border-bottom: none !important;
+        border-right: 1px solid #000000 !important;
+    }
+
+    /* Draw left border of table box */
+    .col-a {
+        border-left: 1px solid #000000 !important;
+    }
+
+    /* Draw right border of table box */
+    .col-e {
+        border-right: 1px solid #000000 !important;
+    }
+
+    /* Table headers styling (Quantity, Description, Unit Price, Subtotal) */
+    .sheet-row.table-header {
+        min-height: 32px !important;
+    }
+    
+    .sheet-row.table-header .sheet-cell {
+        border-top: 1px solid #000000 !important;
+        border-bottom: 1px solid #000000 !important;
+        background-color: transparent !important;
+        font-weight: bold !important;
+    }
+
+    /* Draw bottom line of table box at Row 37 */
+    .sheet-row[data-row="37"] .sheet-cell {
+        border-bottom: 1px solid #000000 !important;
+    }
+
+    /* Print labels styling inside Column C */
+    .print-only-label {
+        display: inline-block;
+        width: 70px;
+        font-weight: bold;
+        color: #000000 !important;
+        font-family: 'Inter', sans-serif !important;
+        text-align: left;
+    }
+    
+    .value-span {
+        font-family: 'JetBrains Mono', monospace !important;
+        color: #000000 !important;
+    }
+
+    /* Align summary block inside Description column C */
+    #cell-items, 
+    #cell-cbm, 
+    #cell-c29, 
+    #cell-factor, 
+    #cell-c31 {
+        padding-left: 120px !important;
+        overflow: visible !important;
+    }
+
+    /* Clean, borderless total block positioned under Subtotal column */
+    .sheet-row.total-row {
+        margin-top: 20px !important;
+        min-height: 40px !important;
+        background-color: transparent !important;
+    }
+    
+    .sheet-row.total-row .sheet-cell {
+        border: none !important;
+        background-color: transparent !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+    }
+
+    .sheet-row.total-row .col-d {
+        overflow: visible !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Ensure collapsible empty rows remain hidden if they are collapsed */
+    .collapsible-rows.collapsed {
+        display: none !important;
+    }
+    
+    /* Display empty rows if they are expanded to print multi-page */
+    .collapsible-rows.expanded {
+        display: block !important;
+    }
+
+    /* Signature lines formatting */
+    .print-signature-block {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin-top: 45px;
+        width: 100%;
+        padding-right: 30px;
+        page-break-inside: avoid;
+    }
+    
+    .signature-row {
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 45px;
+        width: 300px;
+        text-align: left;
+    }
+    
+    .signature-line-wrapper {
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .sig-line {
+        width: 100%;
+        border-bottom: 1px solid #000000;
+        margin-bottom: 5px;
+    }
+    
+    .sig-subtext {
+        font-size: 10px;
+        font-weight: bold;
+        color: #000000;
+    }
+}
+
+/* Mobile responsiveness: hide spreadsheet preview, show only control panel */
+@media (max-width: 768px) {
+    .sheet-viewport {
+        display: none !important;
+    }
+    .control-panel {
+        width: 100% !important;
+        border-right: none !important;
+    }
+}

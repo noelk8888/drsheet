@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleek Invoice & Rates Sheet Generator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Control Panel (Left Sidebar) -->
+        <aside class="control-panel">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-calculator-combined"></i>
+                </div>
+                <div>
+                    <h1>SheetCalc</h1>
+                    <span class="subtitle">Smart Formula Generator</span>
+                </div>
+            </div>
+
+            <form id="generator-form" class="generator-form" onsubmit="event.preventDefault();">
+                <div class="form-section">
+                    <h2 class="section-title"><i class="fa-solid fa-file-invoice"></i> Document Details</h2>
+                    
+                    <div class="input-group">
+                        <label for="input-ref">Reference # <span class="cell-tag">E2</span></label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-hashtag input-icon"></i>
+                            <input type="text" id="input-ref" value="26-06" placeholder="e.g. 26-06" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="input-date">Date <span class="cell-tag">E3</span></label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-calendar-day input-icon"></i>
+                            <input type="date" id="input-date" required>
+                        </div>
+                    </div>
+
+                    <div class="input-grid-2">
+                        <div class="input-group">
+                            <label for="input-items">ITEMS <span class="cell-tag">C25</span></label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-boxes-stacked input-icon"></i>
+                                <input type="text" id="input-items" value="Ref#" placeholder="Items" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="input-cbm">CBM <span class="cell-tag">C26</span></label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-cubes input-icon"></i>
+                                <input type="text" id="input-cbm" value="Ref#" placeholder="CBM" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+ 
+                 <div class="form-section">
+                     <h2 class="section-title"><i class="fa-solid fa-cubes"></i> Line Item Details</h2>
+                     
+                     <div class="input-group">
+                         <label for="input-desc">Description <span class="cell-tag">C7</span></label>
+                         <div class="input-wrapper">
+                             <i class="fa-solid fa-circle-info input-icon"></i>
+                             <input type="text" id="input-desc" value="Linda - 17 bags" placeholder="Item description" required>
+                         </div>
+                     </div>
+ 
+                     <div class="input-grid-2">
+                         <div class="input-group">
+                             <label for="input-qty">Quantity <span class="cell-tag">A7</span></label>
+                             <div class="input-wrapper">
+                                 <i class="fa-solid fa-calculator input-icon"></i>
+                                 <input type="number" id="input-qty" value="60120" min="1" step="any" placeholder="0" required>
+                             </div>
+                         </div>
+ 
+                         <div class="input-group">
+                             <label for="input-cny-rate">CNY Rate <span class="cell-tag">C29</span></label>
+                             <div class="input-wrapper">
+                                 <i class="fa-solid fa-yen-sign input-icon"></i>
+                                 <input type="number" id="input-cny-rate" value="9.1850" min="0.0001" step="0.0001" placeholder="0.00" required>
+                             </div>
+                         </div>
+                     </div>
+                </div>
+
+                <!-- Google Sheets Sync Card -->
+                <div class="form-section sync-section">
+                    <h2 class="section-title"><i class="fa-brands fa-google-drive"></i> Google Sheets Sync</h2>
+                    <div class="input-group">
+                        <label for="input-gsheet-url">Web App URL</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-link input-icon"></i>
+                            <input type="url" id="input-gsheet-url" placeholder="Paste Apps Script URL here">
+                        </div>
+                    </div>
+                    <button type="button" id="btn-show-instructions" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 0.25rem;">
+                        <i class="fa-solid fa-circle-question"></i> View Apps Script Setup Code
+                    </button>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" id="btn-generate" class="btn btn-primary" style="width: 100%;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
+                    </button>
+                </div>
+            </form>
+
+            <div class="footer-note">
+                <p>Calculates CNY Rate with 5% markup.</p>
+                <p>Designed for pixel-perfect printing.</p>
+            </div>
+        </aside>
+
+        <!-- Main Display (Spreadsheet Sheet Area) -->
+        <main class="sheet-viewport">
+            <div class="viewport-header">
+                <div class="title-area">
+                    <h2>Sheet Preview</h2>
+                    <p>Double click cells to highlight, or print to PDF</p>
+                </div>
+                <div class="viewport-controls">
+                    <button id="btn-toggle-grid" class="btn-icon" title="Toggle Grid Lines">
+                        <i class="fa-solid fa-border-all"></i>
+                    </button>
+                    <button id="btn-toggle-rows" class="btn-icon" title="Expand/Collapse Empty Rows">
+                        <i class="fa-solid fa-arrows-up-down"></i>
+                    </button>
+                    <button id="btn-theme" class="btn-icon" title="Toggle UI Theme">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sheet-container">
+                <!-- The Spreadsheet Page -->
+                <div class="google-sheet" id="invoice-sheet">
+                    <!-- Column Header labels -->
+                    <div class="sheet-row header-row">
+                        <div class="row-num-col"></div>
+                        <div class="sheet-cell header-cell col-a">A</div>
+                        <div class="sheet-cell header-cell col-b">B</div>
+                        <div class="sheet-cell header-cell col-c">C</div>
+                        <div class="sheet-cell header-cell col-d">D</div>
+                        <div class="sheet-cell header-cell col-e">E</div>
+                    </div>
+
+                    <!-- Row 1: Blank Spacer/Logo Row -->
+                    <div class="sheet-row" data-row="1">
+                        <div class="row-num-col">1</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b invoice-brand-title" style="overflow: visible; white-space: nowrap;">J2N</div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 2: Reference Number (E2) & Transfer to (C2) -->
+                    <div class="sheet-row" data-row="2">
+                        <div class="row-num-col">2</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b text-right text-gray text-bold" style="overflow: visible; white-space: nowrap;">Transfer to:</div>
+                        <div class="sheet-cell col-c font-mono" id="cell-transfer">DMC - Marlon</div>
+                        <div class="sheet-cell col-d text-right text-bold">Ref#</div>
+                        <div class="sheet-cell col-e cell-highlightable font-mono text-right" id="cell-e2"></div>
+                    </div>
+
+                    <!-- Row 3: Date (E3) & Address Line 1 (C3) -->
+                    <div class="sheet-row" data-row="3">
+                        <div class="row-num-col">3</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c font-mono" id="cell-address-1">22 Ford Ave., Doña Manuela Subd.,</div>
+                        <div class="sheet-cell col-d text-right text-bold">Date</div>
+                        <div class="sheet-cell col-e cell-highlightable font-mono text-right" id="cell-e3"></div>
+                    </div>
+
+                    <!-- Row 4: Address Line 2 (C4) & Page (E4) -->
+                    <div class="sheet-row" data-row="4">
+                        <div class="row-num-col">4</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c font-mono" id="cell-address-2">Pamplona Tres, Las Piñas</div>
+                        <div class="sheet-cell col-d text-right text-bold">Page:</div>
+                        <div class="sheet-cell col-e font-mono text-right" id="cell-e4">1</div>
+                    </div>
+                    <div class="sheet-row" data-row="5">
+                        <div class="row-num-col">5</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 6: Table Column Headers -->
+                    <div class="sheet-row table-header" data-row="6">
+                        <div class="row-num-col">6</div>
+                        <div class="sheet-cell col-a text-left text-bold bg-gray">Quantity</div>
+                        <div class="sheet-cell col-b text-center text-bold bg-gray">UNIT</div>
+                        <div class="sheet-cell col-c text-center text-bold bg-gray">Description</div>
+                        <div class="sheet-cell col-d text-left text-bold bg-gray">Unit Price</div>
+                        <div class="sheet-cell col-e text-left text-bold bg-gray">Subtotal</div>
+                    </div>
+
+                    <!-- Row 7: Main Line Item (A7, C7, D7, E7) -->
+                    <div class="sheet-row" data-row="7">
+                        <div class="row-num-col">7</div>
+                        <div class="sheet-cell col-a text-left cell-highlightable" id="cell-a7"></div>
+                        <div class="sheet-cell col-b text-center text-gray">PCS</div>
+                        <div class="sheet-cell col-c text-left cell-highlightable" id="cell-c7"></div>
+                        <div class="sheet-cell col-d text-left cell-highlightable formula-derived" id="cell-d7"></div>
+                        <div class="sheet-cell col-e text-left cell-highlightable formula-derived" id="cell-e7"></div>
+                    </div>
+
+                    <!-- Row 8: Spare / Blank Row -->
+                    <div class="sheet-row" data-row="8">
+                        <div class="row-num-col">8</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 9: Spare / Blank Row -->
+                    <div class="sheet-row" data-row="9">
+                        <div class="row-num-col">9</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 10: Spare / Blank Row -->
+                    <div class="sheet-row" data-row="10">
+                        <div class="row-num-col">10</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Folded rows visual indicator (Row 11 to 24 hidden) -->
+                    <div class="collapsed-rows-indicator" id="collapsed-indicator">
+                        <div class="indicator-line"></div>
+                        <span class="indicator-text"><i class="fa-solid fa-arrows-up-down"></i> Rows 11 - 24 collapsed (Empty)</span>
+                        <div class="indicator-line"></div>
+                    </div>
+
+                    <!-- Collapsible Container for Rows 11-24 -->
+                    <div class="collapsible-rows collapsed" id="collapsible-rows-container">
+                        <!-- We will generate rows 11 to 24 in JS for performance and clean HTML -->
+                    </div>
+
+                    <!-- Row 25: ITEMS (C25) -->
+                    <div class="sheet-row" data-row="25">
+                        <div class="row-num-col">25</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b text-right text-gray text-bold" style="overflow: visible; white-space: nowrap;">ITEMS:</div>
+                        <div class="sheet-cell col-c cell-highlightable font-mono" id="cell-items"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 26: CBM (C26) -->
+                    <div class="sheet-row" data-row="26">
+                        <div class="row-num-col">26</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b text-right text-gray text-bold" style="overflow: visible; white-space: nowrap;">CBM:</div>
+                        <div class="sheet-cell col-c cell-highlightable font-mono" id="cell-cbm"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 27: Spacer -->
+                    <div class="sheet-row" data-row="27">
+                        <div class="row-num-col">27</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 28: Section Spacer before Rate block -->
+                    <div class="sheet-row" data-row="28">
+                        <div class="row-num-col">28</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 29: CNY Rate (C29) -->
+                    <div class="sheet-row" data-row="29">
+                        <div class="row-num-col">29</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b text-right text-gray text-bold" style="overflow: visible; white-space: nowrap;">CNY:</div>
+                        <div class="sheet-cell col-c cell-highlightable font-mono" id="cell-c29"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 30: Factor (C30) -->
+                    <div class="sheet-row" data-row="30">
+                        <div class="row-num-col">30</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b text-right text-gray text-bold" style="overflow: visible; white-space: nowrap;">factor:</div>
+                        <div class="sheet-cell col-c font-mono" id="cell-factor">1.05</div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 31: RATE (C31) -->
+                    <div class="sheet-row" data-row="31">
+                        <div class="row-num-col">31</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b text-right text-gray text-bold" style="overflow: visible; white-space: nowrap;">RATE:</div>
+                        <div class="sheet-cell col-c cell-highlightable formula-derived font-mono" id="cell-c31"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 32-37: Spacers before grand total -->
+                    <div class="sheet-row" data-row="32">
+                        <div class="row-num-col">32</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+                    <div class="sheet-row" data-row="33">
+                        <div class="row-num-col">33</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+                    <div class="sheet-row" data-row="34">
+                        <div class="row-num-col">34</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+                    <div class="sheet-row" data-row="35">
+                        <div class="row-num-col">35</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+                    <div class="sheet-row" data-row="36">
+                        <div class="row-num-col">36</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+                    <div class="sheet-row" data-row="37">
+                        <div class="row-num-col">37</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    </div>
+
+                    <!-- Row 38: Grand Total (E38) -->
+                    <div class="sheet-row total-row" data-row="38">
+                        <div class="row-num-col">38</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d text-right text-bold">TOTAL</div>
+                        <div class="sheet-cell col-e cell-highlightable formula-derived font-mono text-bold" id="cell-e38"></div>
+                    </div>
+
+                </div>
+
+                <!-- Print-only Signature Block -->
+                <div class="print-signature-block">
+                    <div class="signature-row">
+                        <span class="sig-label">RECEIVED IN GOOD CONDTION:</span>
+                    </div>
+                    <div class="signature-line-wrapper">
+                        <div class="sig-line"></div>
+                        <span class="sig-subtext">Signature Over Printed Name / Date</span>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Live Canvas Overlay for calculation animation paths -->
+    <canvas id="animation-canvas"></canvas>
+
+    <!-- Formula Popups container for floating calculations -->
+    <div id="formula-popup" class="formula-popup-toast"></div>
+
+    <!-- Setup Instructions Modal -->
+    <div id="instructions-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-brands fa-google"></i> Google Sheets API Sync Setup</h3>
+                <button type="button" id="btn-close-modal" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>To enable direct syncing to your Google Sheet, follow these simple steps:</p>
+                <ol class="instructions-steps">
+                    <li>Open your Google Sheet: <a href="https://docs.google.com/spreadsheets/d/1Kt1KgYSlMMxnN6gpPzwUkmTbOff0AOz7QuFqlwOTLJE/edit?gid=0#gid=0" target="_blank">Google Sheet Link</a>.</li>
+                    <li>In the menu, click <strong>Extensions</strong> &gt; <strong>Apps Script</strong>.</li>
+                    <li>Delete any existing code inside the editor and paste the code below:</li>
+                </ol>
+                <div class="code-container">
+                    <pre><code id="apps-script-code"></code></pre>
+                    <button type="button" id="btn-copy-code" class="btn btn-primary btn-sm"><i class="fa-solid fa-copy"></i> Copy</button>
+                </div>
+                <ol class="instructions-steps" start="4">
+                    <li>Click <strong>Save</strong> (floppy disk icon), then click <strong>Deploy</strong> &gt; <strong>New Deployment</strong> (top right).</li>
+                    <li>Select <strong>Web app</strong> as the deployment type (click the gear icon).</li>
+                    <li>Under <em>Execute as</em>, select <strong>Me</strong>. Under <em>Who has access</em>, select <strong>Anyone</strong>.</li>
+                    <li>Click <strong>Deploy</strong>, authorize spreadsheet permissions, and copy the generated <strong>Web app URL</strong>.</li>
+                    <li>Paste the copied URL in the sidebar input box on the left, and click <strong>Generate</strong>!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
