@@ -383,7 +383,7 @@ function doGet(e) {
         }
 
         // Open Google Sheet in a new tab immediately to bypass browser popup blockers
-        window.open('https://docs.google.com/spreadsheets/d/1Kt1KgYSlMMxnN6gpPzwUkmTbOff0AOz7QuFqlwOTLJE/edit?gid=0#gid=0', '_blank');
+        window.open('https://docs.google.com/spreadsheets/d/1azRoUDoaCwqpzIftBMrCWGkURmkdLmfdMVJfTkQh3hM/edit?gid=165820978#gid=165820978', '_blank');
 
         // Get Input Data
         const refVal = inputRef.value;
