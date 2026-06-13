@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const APPS_SCRIPT_SOURCE = `function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("ISSUE DR") || ss.getSheets()[0];
     
     // Write metadata
     sheet.getRange("E2").setValue(data.ref);
