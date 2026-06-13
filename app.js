@@ -1087,6 +1087,44 @@ function doGet(e) {
         if (!dateStr) return '';
         dateStr = dateStr.trim();
         
+        // Handle "Jun-21- Sun" or "Mar-6- Fri"
+        const monthMap = {
+            'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+            'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
+            'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
+        };
+        
+        const match = dateStr.match(/^([A-Za-z]{3})-(\d{1,2})-\s*[A-Za-z]{3}$/);
+        if (match) {
+            const monthName = match[1].toLowerCase();
+            const month = monthMap[monthName] || '01';
+            const day = match[2].padStart(2, '0');
+            let year = '2026';
+            const refInputVal = document.getElementById('input-ref').value;
+            if (refInputVal && /^\d{2}-/.test(refInputVal)) {
+                year = '20' + refInputVal.substring(0, 2);
+            } else {
+                year = String(new Date().getFullYear());
+            }
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Handle short "Jun-21" format
+        const matchShort = dateStr.match(/^([A-Za-z]{3})-(\d{1,2})/);
+        if (matchShort) {
+            const monthName = matchShort[1].toLowerCase();
+            const month = monthMap[monthName] || '01';
+            const day = matchShort[2].padStart(2, '0');
+            let year = '2026';
+            const refInputVal = document.getElementById('input-ref').value;
+            if (refInputVal && /^\d{2}-/.test(refInputVal)) {
+                year = '20' + refInputVal.substring(0, 2);
+            } else {
+                year = String(new Date().getFullYear());
+            }
+            return `${year}-${month}-${day}`;
+        }
+
         const parts = dateStr.split('/');
         if (parts.length === 3) {
             let month = parts[0].padStart(2, '0');
