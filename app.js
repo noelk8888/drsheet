@@ -93,11 +93,28 @@ function doGet(e) {
     initSyncSettings();
 
     // Event Listeners
+    const btnFetchRow = document.getElementById('btn-fetch-row');
+    const inputRowNum = document.getElementById('input-row-num');
+    const rowInputWrapper = document.getElementById('row-input-wrapper');
+
     btnGenerate.addEventListener('click', generateInvoice);
     btnToggleGrid.addEventListener('click', toggleGrid);
     btnToggleRows.addEventListener('click', toggleRows);
     collapsedIndicator.addEventListener('click', toggleRows);
     btnTheme.addEventListener('click', toggleTheme);
+
+    if (btnFetchRow && inputRowNum) {
+        btnFetchRow.addEventListener('click', () => {
+            fetchRowData(parseInt(inputRowNum.value));
+        });
+
+        inputRowNum.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                fetchRowData(parseInt(inputRowNum.value));
+            }
+        });
+    }
 
     // Modal Event Listeners
     btnShowInstructions.addEventListener('click', () => {
@@ -963,5 +980,150 @@ function doGet(e) {
         
         link.click();
         document.body.removeChild(link);
+    }
+
+    async function fetchRowData(rowNum) {
+        if (!rowNum || rowNum < 1) {
+            alert("Please enter a valid row number greater than 0.");
+            return;
+        }
+
+        const icon = btnFetchRow.querySelector('i');
+        const originalIconClass = icon.className;
+        
+        // Show loading state
+        rowInputWrapper.classList.add('loading');
+        icon.className = 'fa-solid fa-circle-notch fa-spin';
+        btnFetchRow.disabled = true;
+
+        try {
+            const url = `https://docs.google.com/spreadsheets/d/1azRoUDoaCwqpzIftBMrCWGkURmkdLmfdMVJfTkQh3hM/export?format=csv&gid=311571294&t=${Date.now()}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const csvText = await response.text();
+
+            if (typeof Papa === 'undefined') {
+                throw new Error('CSV parser is not loaded. Please check your internet connection.');
+            }
+
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: false,
+                complete: function(results) {
+                    const data = results.data;
+                    const rowIndex = rowNum - 1;
+
+                    if (rowIndex >= data.length || rowIndex < 0) {
+                        alert(`Row ${rowNum} is out of bounds (max rows: ${data.length}).`);
+                        resetLoadingState();
+                        return;
+                    }
+
+                    const row = data[rowIndex];
+                    if (!row || row.length === 0 || row.every(cell => !cell)) {
+                        alert(`Row ${rowNum} is empty.`);
+                        resetLoadingState();
+                        return;
+                    }
+
+                    const colY = (row[24] || '').trim();
+                    const refVal = colY.substring(0, 7);
+                    
+                    // Reference # - first 7 characters of col Y
+                    inputRef.value = refVal;
+
+                    // Date - col V (index 21)
+                    const dateVal = cleanDate(row[21]);
+                    if (dateVal) {
+                        inputDate.value = dateVal;
+                    }
+
+                    // ITEMS - same as Reference #
+                    inputItems.value = refVal;
+
+                    // CBM - replace last 3 chars of Reference # with last 3 chars of col Y
+                    const last3 = colY.length >= 3 ? colY.slice(-3) : colY;
+                    const cbmVal = refVal.slice(0, 4) + last3;
+                    inputCbm.value = cbmVal;
+
+                    // Description - Col C (index 2)
+                    inputDesc.value = (row[2] || '').trim();
+
+                    // Quantity - Col E (index 4)
+                    const qtyVal = parseFloat((row[4] || '').replace(/,/g, '')) || 0;
+                    inputQty.value = qtyVal;
+
+                    // CNY Rate - Col O (index 14)
+                    const cnyRateVal = parseFloat((row[14] || '').replace(/,/g, '')) || 0;
+                    inputCnyRate.value = cnyRateVal;
+
+                    // Trigger the calculations
+                    runInitialCalculations();
+
+                    // Success animation
+                    flashInputs();
+                    resetLoadingState();
+                },
+                error: function(err) {
+                    console.error("CSV parse error:", err);
+                    alert("Failed to parse sheet data.");
+                    resetLoadingState();
+                }
+            });
+        } catch (error) {
+            console.error("Fetch error:", error);
+            alert("Failed to fetch Google Sheet data. Error: " + error.message);
+            resetLoadingState();
+        }
+
+        function resetLoadingState() {
+            rowInputWrapper.classList.remove('loading');
+            icon.className = originalIconClass;
+            btnFetchRow.disabled = false;
+        }
+    }
+
+    function cleanDate(dateStr) {
+        if (!dateStr) return '';
+        dateStr = dateStr.trim();
+        
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            let month = parts[0].padStart(2, '0');
+            let day = parts[1].padStart(2, '0');
+            let year = parts[2];
+            if (year.length === 2) {
+                year = '20' + year;
+            }
+            return `${year}-${month}-${day}`;
+        }
+        
+        const isoParts = dateStr.split('-');
+        if (isoParts.length === 3 && isoParts[0].length === 4) {
+            return dateStr;
+        }
+
+        try {
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) {
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+        } catch (e) {}
+
+        return '';
+    }
+
+    function flashInputs() {
+        const inputs = [inputRef, inputDate, inputItems, inputCbm, inputDesc, inputQty, inputCnyRate];
+        inputs.forEach(input => {
+            input.style.transition = 'background-color 0.3s ease';
+            input.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+            setTimeout(() => {
+                input.style.backgroundColor = '';
+            }, 800);
+        });
     }
 });

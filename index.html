@@ -19,11 +19,16 @@
         <aside class="control-panel">
             <div class="brand">
                 <div class="brand-icon">
-                    <i class="fa-solid fa-calculator-combined"></i>
+                    <i class="fa-solid fa-hashtag"></i>
                 </div>
-                <div>
-                    <h1>SheetCalc</h1>
-                    <span class="subtitle">Smart Formula Generator</span>
+                <div class="brand-row-input">
+                    <label for="input-row-num">ROW#</label>
+                    <div class="row-input-wrapper" id="row-input-wrapper">
+                        <input type="number" id="input-row-num" placeholder="e.g. 5" min="2">
+                        <button type="button" id="btn-fetch-row" class="btn-fetch-icon" title="Fetch Row Data">
+                            <i class="fa-solid fa-cloud-arrow-down"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -448,6 +453,8 @@
         </div>
     </div>
 
+    <!-- PapaParse CDN for parsing CSV data from Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <!-- Application Script -->
     <script src="app.js"></script>
 </body>

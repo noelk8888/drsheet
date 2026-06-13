@@ -1048,3 +1048,80 @@ body {
         border-right: none !important;
     }
 }
+
+/* Brand ROW# Input Styles */
+.brand-row-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex-grow: 1;
+}
+
+.brand-row-input label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--primary);
+    text-transform: uppercase;
+}
+
+.row-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.row-input-wrapper input {
+    width: 80px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all var(--transition-fast);
+}
+
+.row-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 2px var(--input-focus-glow);
+}
+
+.btn-fetch-icon {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);
+    transition: all var(--transition-fast);
+}
+
+.btn-fetch-icon:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+}
+
+.btn-fetch-icon:active {
+    transform: translateY(0);
+}
+
+/* Loading animation state */
+.row-input-wrapper.loading input {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+}
+
+.row-input-wrapper.loading .btn-fetch-icon i {
+    animation: fa-spin 1.5s infinite linear;
+}
