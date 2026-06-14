@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Write base rate Page 1
     sheet.getRange("C29").setValue(data.cnyRate);
 
+    // Write image Page 1 (Row 45)
+    if (data.image1) {
+      sheet.getRange("A45").setFormula('=IMAGE("' + data.image1 + '", 2)');
+    } else {
+      sheet.getRange("A45").clearContent();
+    }
+
     // If split row, also write Page 2 details (G1:K44)
     if (data.isSplit) {
       sheet.getRange("K2").setValue(data.ref2);
@@ -53,6 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Write Unit Price directly to J7 for Page 2
       sheet.getRange("J7").setValue(data.markupCbmRate);
+      
+      // Write image Page 2 (Row 45)
+      if (data.image2) {
+        sheet.getRange("G45").setFormula('=IMAGE("' + data.image2 + '", 2)');
+      } else {
+        sheet.getRange("G45").clearContent();
+      }
+    } else {
+      // Clear image Page 2 if not split
+      sheet.getRange("G45").clearContent();
     }
     
     // Force spreadsheet to flush and recalculate formulas
@@ -611,6 +628,11 @@ function doGet(e) {
         const ref1 = parts[0];
         const ref2 = hasSplit ? (ref1.substring(0, 5) + parts[1].slice(-2)) : '';
 
+        const img1 = document.getElementById('input-image1')?.value;
+        const img2 = document.getElementById('input-image2')?.value;
+        const image1Url = img1 ? getEmbeddableDriveUrl(img1) : '';
+        const image2Url = img2 ? getEmbeddableDriveUrl(img2) : '';
+
         currentCalculationData = {
             isSplit: hasSplit,
             ref: refVal,
@@ -630,7 +652,9 @@ function doGet(e) {
             markupRate: markupRate,
             markupCbmRate: markupCbmRate,
             totalCny: totalCny,
-            totalCbmCny: totalCbmCny
+            totalCbmCny: totalCbmCny,
+            image1: image1Url,
+            image2: image2Url
         };
 
         const syncUrl = inputGsheetUrl.value.trim();
