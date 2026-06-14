@@ -1292,8 +1292,10 @@ function doGet(e) {
                     }
 
                     // Extract Image URLs (Column D = index 3, Column R = index 17)
-                    document.getElementById('input-image1').value = (row[3] || '').trim();
-                    document.getElementById('input-image2').value = (row[17] || '').trim();
+                    const img1 = document.getElementById('input-image1');
+                    if (img1) img1.value = (row[3] || '').trim();
+                    const img2 = document.getElementById('input-image2');
+                    if (img2) img2.value = (row[17] || '').trim();
 
                     // Date - col V (index 21)
                     const dateVal = cleanDate(row[21]);
