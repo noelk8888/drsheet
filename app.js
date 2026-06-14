@@ -526,37 +526,7 @@ function doGet(e) {
             // Add back page image if available
             const imageUrl = index === 0 ? document.getElementById('input-image1')?.value : document.getElementById('input-image2')?.value;
             
-            function getEmbeddableDriveUrl(url) {
-                if (!url) return '';
-                let id = null;
-                const idMatch = url.match(/[?&]id=([^&]+)/);
-                const fileDMatch = url.match(/\/file\/d\/([^\/]+)/);
-                if (idMatch && idMatch[1]) {
-                    id = idMatch[1];
-                } else if (fileDMatch && fileDMatch[1]) {
-                    id = fileDMatch[1];
-                }
-                if (id) {
-                    return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
-                }
-                return url; // Fallback
-            }
 
-            function getGsheetImageUrl(url) {
-                if (!url) return '';
-                let id = null;
-                const idMatch = url.match(/[?&]id=([^&]+)/);
-                const fileDMatch = url.match(/\/file\/d\/([^\/]+)/);
-                if (idMatch && idMatch[1]) {
-                    id = idMatch[1];
-                } else if (fileDMatch && fileDMatch[1]) {
-                    id = fileDMatch[1];
-                }
-                if (id) {
-                    return `https://drive.google.com/uc?export=view&id=${id}`;
-                }
-                return url; // Fallback
-            }
 
             const embedUrl = getEmbeddableDriveUrl(imageUrl);
             
@@ -608,6 +578,38 @@ function doGet(e) {
      * Main calculation function invoked by the GENERATE button
      * Triggers Google Sheet background syncing and visual animation sequences
      */
+    function getEmbeddableDriveUrl(url) {
+        if (!url) return '';
+        let id = null;
+        const idMatch = url.match(/[?&]id=([^&]+)/);
+        const fileDMatch = url.match(/\/file\/d\/([^\/]+)/);
+        if (idMatch && idMatch[1]) {
+            id = idMatch[1];
+        } else if (fileDMatch && fileDMatch[1]) {
+            id = fileDMatch[1];
+        }
+        if (id) {
+            return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+        }
+        return url; // Fallback
+    }
+
+    function getGsheetImageUrl(url) {
+        if (!url) return '';
+        let id = null;
+        const idMatch = url.match(/[?&]id=([^&]+)/);
+        const fileDMatch = url.match(/\/file\/d\/([^\/]+)/);
+        if (idMatch && idMatch[1]) {
+            id = idMatch[1];
+        } else if (fileDMatch && fileDMatch[1]) {
+            id = fileDMatch[1];
+        }
+        if (id) {
+            return `https://drive.google.com/uc?export=view&id=${id}`;
+        }
+        return url; // Fallback
+    }
+
     async function generateInvoice() {
         // Validate form
         if (!form.checkValidity()) {
