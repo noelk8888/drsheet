@@ -699,7 +699,6 @@ function doGet(e) {
                         cell.innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupRate)}</span>`;
                         cell.classList.add('pulse-animate');
                     }
-                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
                     const p2 = invoicePages[1];
                     if (p2) {
                         const cell = p2.querySelector('#cell-c31');
@@ -723,7 +722,6 @@ function doGet(e) {
                         cell.textContent = formatRate(markupRate);
                         cell.classList.add('pulse-animate');
                     }
-                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
                     const p2 = invoicePages[1];
                     if (p2) {
                         const cell = p2.querySelector('#cell-d7');
@@ -749,7 +747,6 @@ function doGet(e) {
                         cell.textContent = formatMoney(totalCny);
                         cell.classList.add('pulse-animate');
                     }
-                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
                     const p2 = invoicePages[1];
                     if (p2) {
                         const cell = p2.querySelector('#cell-e7');
@@ -775,7 +772,6 @@ function doGet(e) {
                         cell.classList.add('pulse-animate');
                         triggerConfetti('cell-e38');
                     }
-                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
                     const p2 = invoicePages[1];
                     if (p2) {
                         const cell = p2.querySelector('#cell-e38');
