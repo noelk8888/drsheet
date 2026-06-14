@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     sheet.getRange("C8").setValue("ITEMS");
     
     // Write logistics summary Page 1
-    sheet.getRange("C25").setValue("Ref#- " + data.ref1 + ".");
-    sheet.getRange("C26").setValue("Ref#- " + data.ref2 + ".");
+    sheet.getRange("C25").setValue("Ref# " + data.ref1);
+    sheet.getRange("C26").setValue("Ref# " + data.ref2);
     
     // Write base rate Page 1
     sheet.getRange("C29").setValue(data.cnyRate);
@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
       sheet.getRange("I7").setValue(data.desc);
       sheet.getRange("I8").setValue("CBM");
       
-      sheet.getRange("I25").setValue("Ref#- " + data.ref1 + ".");
-      sheet.getRange("I26").setValue("Ref#- " + data.ref2 + ".");
+      sheet.getRange("I25").setValue("Ref# " + data.ref1);
+      sheet.getRange("I26").setValue("Ref# " + data.ref2);
       
       // Clear CNY breakdown on Page 2
       sheet.getRange("H29:I31").clearContent();
@@ -477,8 +477,8 @@ function doGet(e) {
             const finalItemsVal = hasSplit ? parts[0] : refVal;
             const finalCbmVal = hasSplit ? (parts[0].substring(0, 5) + parts[1].slice(-2)) : cbmVal;
 
-            pageEl.querySelector('#cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">Ref#- ${itemsVal || finalItemsVal}.</span>`;
-            pageEl.querySelector('#cell-cbm').innerHTML = `<span class="print-only-label">CBM</span><span class="value-span">Ref#- ${cbmVal || finalCbmVal}.</span>`;
+            pageEl.querySelector('#cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">Ref# ${itemsVal || finalItemsVal}</span>`;
+            pageEl.querySelector('#cell-cbm').innerHTML = `<span class="print-only-label">CBM</span><span class="value-span">Ref# ${cbmVal || finalCbmVal}</span>`;
 
             // Generate rows 11 to 24 dynamically inside pageEl
             const pageCollapsibleContainer = pageEl.querySelector('#collapsible-rows-container');
