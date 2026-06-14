@@ -11,25 +11,41 @@ document.addEventListener('DOMContentLoaded', () => {
     var ss = SpreadsheetApp.openById("1azRoUDoaCwqpzIftBMrCWGkURmkdLmfdMVJfTkQh3hM");
     var sheet = ss.getSheetByName("ISSUE DR") || ss.getSheets()[0];
     
-    // Write metadata
-    sheet.getRange("E2").setValue(data.ref);
+    // Write metadata Page 1
+    sheet.getRange("E2").setValue(data.ref1);
     sheet.getRange("E3").setValue(data.date);
     
-    // Write shipping details
+    // Write shipping details Page 1
     sheet.getRange("C2").setValue(data.transfer);
     sheet.getRange("C3").setValue(data.address1);
     sheet.getRange("C4").setValue(data.address2);
     
-    // Write line item details
+    // Write line item details Page 1
     sheet.getRange("A7").setValue(data.qty);
     sheet.getRange("C7").setValue(data.desc);
     
-    // Write logistics summary
+    // Write logistics summary Page 1
     sheet.getRange("C25").setValue(data.items);
     sheet.getRange("C26").setValue(data.cbm);
     
-    // Write base rate
+    // Write base rate Page 1
     sheet.getRange("C29").setValue(data.cnyRate);
+
+    // If split row, also write Page 2 details (G1:K44)
+    if (data.isSplit) {
+      sheet.getRange("K2").setValue(data.ref2);
+      sheet.getRange("K3").setValue(data.date);
+      
+      sheet.getRange("I2").setValue(data.transfer);
+      sheet.getRange("I3").setValue(data.address1);
+      sheet.getRange("I4").setValue(data.address2);
+      
+      sheet.getRange("G7").setValue(data.cbmQty);
+      sheet.getRange("I7").setValue(data.desc);
+      
+      sheet.getRange("I26").setValue(data.ref2);
+      sheet.getRange("I29").setValue(data.cbmRate);
+    }
     
     // Force spreadsheet to flush and recalculate formulas
     SpreadsheetApp.flush();
@@ -54,6 +70,8 @@ function doGet(e) {
     const inputDesc = document.getElementById('input-desc');
     const inputQty = document.getElementById('input-qty');
     const inputCnyRate = document.getElementById('input-cny-rate');
+    const inputCbmQty = document.getElementById('input-cbm-qty');
+    const inputCbmRate = document.getElementById('input-cbm-rate');
 
     const btnGenerate = document.getElementById('btn-generate');
     const btnToggleGrid = document.getElementById('btn-toggle-grid');
@@ -67,9 +85,9 @@ function doGet(e) {
     const instructionsModal = document.getElementById('instructions-modal');
     const appsScriptCode = document.getElementById('apps-script-code');
 
-    const sheet = document.getElementById('invoice-sheet');
-    const collapsedIndicator = document.getElementById('collapsed-indicator');
-    const collapsibleRowsContainer = document.getElementById('collapsible-rows-container');
+    const sheetContainer = document.getElementById('sheet-container');
+    const invoicePageTemplate = sheetContainer.innerHTML;
+    let sheet = null;
 
     const formulaPopup = document.getElementById('formula-popup');
 
@@ -87,9 +105,6 @@ function doGet(e) {
     // Initialize Page
     initRefInput();
     initDateInput();
-    initCollapsedRows();
-    setupCanvas();
-    setupCellInteractions();
     runInitialCalculations();
     initSyncSettings();
 
@@ -101,8 +116,15 @@ function doGet(e) {
     btnGenerate.addEventListener('click', generateInvoice);
     btnToggleGrid.addEventListener('click', toggleGrid);
     btnToggleRows.addEventListener('click', toggleRows);
-    collapsedIndicator.addEventListener('click', toggleRows);
     btnTheme.addEventListener('click', toggleTheme);
+
+    // Event delegation for collapsed indicator
+    sheetContainer.addEventListener('click', (e) => {
+        const indicator = e.target.closest('.collapsed-rows-indicator');
+        if (indicator) {
+            toggleRows();
+        }
+    });
 
     if (btnFetchRow && inputRowNum) {
         btnFetchRow.addEventListener('click', () => {
@@ -150,27 +172,10 @@ function doGet(e) {
         }
     }
 
-    // Sync input handlers for real-time visual feedback on non-computed cells
-    inputRef.addEventListener('input', (e) => {
-        document.getElementById('cell-e2').textContent = e.target.value;
-    });
-    inputDate.addEventListener('input', (e) => {
-        document.getElementById('cell-e3').textContent = formatDateToDdMmmYyyy(e.target.value);
-    });
-    inputItems.addEventListener('input', (e) => {
-        document.getElementById('cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">${e.target.value}</span>`;
-    });
-    inputCbm.addEventListener('input', (e) => {
-        document.getElementById('cell-cbm').innerHTML = `<span class="print-only-label">CBM</span><span class="value-span">${e.target.value}</span>`;
-    });
-    inputDesc.addEventListener('input', (e) => {
-        document.getElementById('cell-c7').textContent = e.target.value;
-    });
-    inputQty.addEventListener('input', (e) => {
-        document.getElementById('cell-a7').textContent = formatQty(e.target.value);
-    });
-    inputCnyRate.addEventListener('input', (e) => {
-        document.getElementById('cell-c29').innerHTML = `<span class="print-only-label">CNY</span><span class="value-span">${formatRate(e.target.value)}</span>`;
+    // Sync input handlers for real-time visual feedback
+    const inputsToWatch = [inputRef, inputDate, inputItems, inputCbm, inputDesc, inputQty, inputCnyRate, inputCbmQty, inputCbmRate];
+    inputsToWatch.forEach(input => {
+        input.addEventListener('input', runInitialCalculations);
     });
 
     /**
@@ -238,32 +243,20 @@ function doGet(e) {
         });
     }
 
-    /**
-     * Dynamically insert empty rows 11 to 24
-     */
-    function initCollapsedRows() {
-        collapsibleRowsContainer.innerHTML = '';
-        for (let row = 11; row <= 24; row++) {
-            const rowEl = document.createElement('div');
-            rowEl.className = 'sheet-row';
-            rowEl.setAttribute('data-row', row);
-            
-            rowEl.innerHTML = `
-                <div class="row-num-col">${row}</div>
-                <div class="sheet-cell col-a"></div>
-                <div class="sheet-cell col-b"></div>
-                <div class="sheet-cell col-c"></div>
-                <div class="sheet-cell col-d"></div>
-                <div class="sheet-cell col-e"></div>
-            `;
-            collapsibleRowsContainer.appendChild(rowEl);
-        }
-    }
+
 
     /**
      * Initialize canvas element and size it to match the spreadsheet
      */
     function setupCanvas() {
+        const existingCanvas = document.getElementById('animation-canvas');
+        if (existingCanvas) {
+            existingCanvas.remove();
+        }
+
+        sheet = document.querySelector('.google-sheet');
+        if (!sheet) return;
+
         canvas = document.createElement('canvas');
         canvas.id = 'animation-canvas';
         canvas.style.position = 'absolute';
@@ -277,11 +270,13 @@ function doGet(e) {
         ctx = canvas.getContext('2d');
         
         resizeCanvas();
+        // Remove and re-add resize listener to prevent duplicates
+        window.removeEventListener('resize', resizeCanvas);
         window.addEventListener('resize', resizeCanvas);
     }
 
     function resizeCanvas() {
-        if (canvas) {
+        if (canvas && sheet) {
             canvas.width = sheet.offsetWidth;
             canvas.height = sheet.offsetHeight;
         }
@@ -307,13 +302,14 @@ function doGet(e) {
                 document.querySelectorAll('.cell-highlightable').forEach(c => c.classList.remove('cell-selected'));
                 cell.classList.add('cell-selected');
 
-                const matchingInput = cellMap[cell.id];
+                const cellId = cell.id || cell.className.split(' ').find(c => c.startsWith('cell-') || c === 'cell-items' || c === 'cell-cbm');
+                const matchingInput = cellMap[cellId];
                 if (matchingInput) {
                     matchingInput.focus();
                     matchingInput.select();
                 } else {
                     // For computed cells, highlight the source cells instead
-                    flashSourceCellsForComputed(cell.id);
+                    flashSourceCellsForComputed(cellId, cell.closest('.google-sheet'));
                 }
             });
         });
@@ -322,7 +318,8 @@ function doGet(e) {
     /**
      * Highlights spreadsheet sources when clicking formula-derived cells
      */
-    function flashSourceCellsForComputed(cellId) {
+    function flashSourceCellsForComputed(cellId, scopeSheet) {
+        if (!scopeSheet) return;
         let sources = [];
         if (cellId === 'cell-c31') sources = ['cell-c29'];
         else if (cellId === 'cell-d7') sources = ['cell-c31'];
@@ -330,7 +327,7 @@ function doGet(e) {
         else if (cellId === 'cell-e38') sources = ['cell-e7'];
 
         sources.forEach(srcId => {
-            const el = document.getElementById(srcId);
+            const el = scopeSheet.querySelector('#' + srcId);
             if (el) {
                 el.classList.add('cell-selected');
                 setTimeout(() => el.classList.remove('cell-selected'), 1000);
@@ -342,7 +339,7 @@ function doGet(e) {
      * Perform initial fast calculations without step animations on load
      */
     function runInitialCalculations() {
-        const refVal = inputRef.value;
+        const refVal = inputRef.value.trim();
         const dateVal = inputDate.value;
         const transferVal = 'DMC - Marlon';
         const address1Val = '22 Ford Ave., Doña Manuela Subd.,';
@@ -352,29 +349,170 @@ function doGet(e) {
         const descVal = inputDesc.value;
         const qtyVal = parseFloat(inputQty.value) || 0;
         const cnyRateVal = parseFloat(inputCnyRate.value) || 0;
+        const cbmQtyVal = parseFloat(inputCbmQty.value) || 0;
+        const cbmRateVal = parseFloat(inputCbmRate.value) || 0;
 
         const markupRate = cnyRateVal * 1.05;
         const totalCny = qtyVal * markupRate;
 
-        // Populate values
-        document.getElementById('cell-e2').textContent = refVal;
-        document.getElementById('cell-e3').textContent = formatDateToDdMmmYyyy(dateVal);
-        document.getElementById('cell-transfer').textContent = transferVal;
-        document.getElementById('cell-address-1').textContent = address1Val;
-        document.getElementById('cell-address-2').textContent = address2Val;
-        document.getElementById('cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">${itemsVal}</span>`;
-        document.getElementById('cell-cbm').innerHTML = `<span class="print-only-label">CBM</span><span class="value-span">${cbmVal}</span>`;
-        document.getElementById('cell-a7').textContent = formatQty(qtyVal);
-        document.getElementById('cell-c7').textContent = descVal;
-        document.getElementById('cell-c29').innerHTML = `<span class="print-only-label">CNY</span><span class="value-span">${formatRate(cnyRateVal)}</span>`;
+        const markupCbmRate = cbmRateVal * 1.05;
+        const totalCbmCny = cbmQtyVal * markupCbmRate;
 
-        document.getElementById('cell-c31').innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupRate)}</span>`;
-        document.getElementById('cell-d7').textContent = formatRate(markupRate);
-        document.getElementById('cell-e7').textContent = formatMoney(totalCny);
-        document.getElementById('cell-e38').textContent = formatMoney(totalCny);
+        // Clear container
+        sheetContainer.innerHTML = '';
+
+        const hasSplit = refVal.includes('/');
+        let pagesToCreate = [];
+
+        if (hasSplit) {
+            const parts = refVal.split('/').map(p => p.trim());
+            const ref1 = parts[0];
+            const ref2 = ref1.substring(0, 5) + parts[1].slice(-2);
+            pagesToCreate.push({ ref: ref1 });
+            pagesToCreate.push({ ref: ref2 });
+        } else {
+            pagesToCreate.push({ ref: refVal });
+        }
+
+        const parts = hasSplit ? refVal.split('/').map(p => p.trim()) : [refVal];
+
+        pagesToCreate.forEach((pageConfig, index) => {
+            const pageEl = document.createElement('div');
+            pageEl.className = 'invoice-page';
+            pageEl.innerHTML = invoicePageTemplate;
+            
+            const pageSheet = pageEl.querySelector('.google-sheet');
+            
+            // Set default Page 1 values
+            let currentQty = qtyVal;
+            let currentRate = cnyRateVal;
+            let currentMarkup = markupRate;
+            let currentTotal = totalCny;
+            let currentUnit = 'PCS';
+            let qtyText = formatQty(qtyVal);
+            let priceText = formatRate(markupRate);
+
+            // Populate Row 8 C8 text
+            pageEl.querySelector('.sheet-row[data-row="8"] .col-c').textContent = 'ITEMS';
+
+            // Make sure Row 29, 30, 31 are shown by default
+            pageEl.querySelector('.sheet-row[data-row="29"]').style.display = 'flex';
+            pageEl.querySelector('.sheet-row[data-row="30"]').style.display = 'flex';
+            pageEl.querySelector('.sheet-row[data-row="31"]').style.display = 'flex';
+
+            if (hasSplit && index === 1) {
+                // Page 2 - CBM Invoice (G1:K44)
+                currentQty = cbmQtyVal;
+                currentRate = cbmRateVal;
+                currentMarkup = markupCbmRate;
+                currentTotal = totalCbmCny;
+                currentUnit = 'CBM';
+                qtyText = currentQty.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+                priceText = Math.round(currentMarkup).toLocaleString('en-US');
+
+                // Map header column letters to G, H, I, J, K
+                pageEl.querySelector('.header-row .col-a').textContent = 'G';
+                pageEl.querySelector('.header-row .col-b').textContent = 'H';
+                pageEl.querySelector('.header-row .col-c').textContent = 'I';
+                pageEl.querySelector('.header-row .col-d').textContent = 'J';
+                pageEl.querySelector('.header-row .col-e').textContent = 'K';
+
+                // Change Row 8 C8 text to CBM
+                pageEl.querySelector('.sheet-row[data-row="8"] .col-c').textContent = 'CBM';
+
+                // Hide CNY rate block on Page 2 (image 3 section)
+                pageEl.querySelector('.sheet-row[data-row="29"]').style.display = 'none';
+                pageEl.querySelector('.sheet-row[data-row="30"]').style.display = 'none';
+                pageEl.querySelector('.sheet-row[data-row="31"]').style.display = 'none';
+            }
+
+            pageEl.querySelector('#cell-e2').textContent = pageConfig.ref;
+            pageEl.querySelector('#cell-e3').textContent = formatDateToDdMmmYyyy(dateVal);
+            pageEl.querySelector('#cell-transfer').textContent = transferVal;
+            pageEl.querySelector('#cell-address-1').textContent = address1Val;
+            pageEl.querySelector('#cell-address-2').textContent = address2Val;
+            
+            pageEl.querySelector('#cell-a7').textContent = qtyText;
+            pageEl.querySelector('.sheet-row[data-row="7"] .col-b').textContent = currentUnit;
+            pageEl.querySelector('#cell-c7').textContent = descVal;
+            pageEl.querySelector('#cell-c29').innerHTML = `<span class="print-only-label">CNY</span><span class="value-span">${formatRate(currentRate)}</span>`;
+            pageEl.querySelector('#cell-c31').innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(currentMarkup)}</span>`;
+            pageEl.querySelector('#cell-d7').textContent = priceText;
+            pageEl.querySelector('#cell-e7').textContent = formatMoney(currentTotal);
+            pageEl.querySelector('#cell-e38').textContent = formatMoney(currentTotal);
+            pageEl.querySelector('#cell-e4').textContent = index + 1;
+
+            const itemsRow = pageEl.querySelector('.sheet-row[data-row="25"]');
+            const cbmRow = pageEl.querySelector('.sheet-row[data-row="26"]');
+
+            // Both appear on both pages
+            itemsRow.style.display = 'flex';
+            cbmRow.style.display = 'flex';
+
+            const finalItemsVal = hasSplit ? parts[0] : refVal;
+            const finalCbmVal = hasSplit ? (parts[0].substring(0, 5) + parts[1].slice(-2)) : cbmVal;
+
+            pageEl.querySelector('#cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">Ref#- ${itemsVal || finalItemsVal}.</span>`;
+            pageEl.querySelector('#cell-cbm').innerHTML = `<span class="print-only-label">CBM</span><span class="value-span">Ref#- ${cbmVal || finalCbmVal}.</span>`;
+
+            // Generate rows 11 to 24 dynamically inside pageEl
+            const pageCollapsibleContainer = pageEl.querySelector('#collapsible-rows-container');
+            if (pageCollapsibleContainer) {
+                pageCollapsibleContainer.innerHTML = '';
+                for (let r = 11; r <= 24; r++) {
+                    const rEl = document.createElement('div');
+                    rEl.className = 'sheet-row';
+                    rEl.setAttribute('data-row', r);
+                    rEl.innerHTML = `
+                        <div class="row-num-col">${r}</div>
+                        <div class="sheet-cell col-a"></div>
+                        <div class="sheet-cell col-b"></div>
+                        <div class="sheet-cell col-c"></div>
+                        <div class="sheet-cell col-d"></div>
+                        <div class="sheet-cell col-e"></div>
+                    `;
+                    pageCollapsibleContainer.appendChild(rEl);
+                }
+            }
+
+            // Sync grid lines status and dark mode status if toggled
+            if (btnToggleGrid.classList.contains('active')) {
+                pageSheet.classList.add('hide-grid');
+            }
+            if (isDarkTheme) {
+                pageSheet.setAttribute('data-sheet-theme', 'dark');
+            }
+
+            // Sync expanded rows status
+            const collapsedRowsContainer = pageEl.querySelector('#collapsible-rows-container');
+            const collapsedRowsIndicator = pageEl.querySelector('#collapsed-indicator');
+            if (isRowsExpanded) {
+                collapsedRowsContainer.classList.add('expanded');
+                collapsedRowsContainer.classList.remove('collapsed');
+                collapsedRowsIndicator.querySelector('.indicator-text').innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Click to collapse empty rows (11 - 24)';
+            } else {
+                collapsedRowsContainer.classList.remove('expanded');
+                collapsedRowsContainer.classList.add('collapsed');
+                collapsedRowsIndicator.querySelector('.indicator-text').innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Rows 11 - 24 collapsed (Empty)';
+            }
+
+            sheetContainer.appendChild(pageEl);
+        });
+
+        // Re-setup canvas on the first sheet
+        setupCanvas();
+
+        // Setup cell interactions across newly created elements
+        setupCellInteractions();
+
+        const ref1 = parts[0];
+        const ref2 = hasSplit ? (ref1.substring(0, 5) + parts[1].slice(-2)) : '';
 
         currentCalculationData = {
+            isSplit: hasSplit,
             ref: refVal,
+            ref1: ref1,
+            ref2: ref2,
             date: dateVal,
             transfer: transferVal,
             address1: address1Val,
@@ -384,8 +522,12 @@ function doGet(e) {
             desc: descVal,
             qty: qtyVal,
             cnyRate: cnyRateVal,
+            cbmQty: cbmQtyVal,
+            cbmRate: cbmRateVal,
             markupRate: markupRate,
-            totalCny: totalCny
+            markupCbmRate: markupCbmRate,
+            totalCny: totalCny,
+            totalCbmCny: totalCbmCny
         };
     }
 
@@ -414,13 +556,26 @@ function doGet(e) {
         const descVal = inputDesc.value;
         const qtyVal = parseFloat(inputQty.value) || 0;
         const cnyRateVal = parseFloat(inputCnyRate.value) || 0;
+        const cbmQtyVal = parseFloat(inputCbmQty.value) || 0;
+        const cbmRateVal = parseFloat(inputCbmRate.value) || 0;
 
         // Perform calculations
         const markupRate = cnyRateVal * 1.05;
         const totalCny = qtyVal * markupRate;
 
+        const markupCbmRate = cbmRateVal * 1.05;
+        const totalCbmCny = cbmQtyVal * markupCbmRate;
+
+        const hasSplit = refVal.includes('/');
+        const parts = hasSplit ? refVal.split('/').map(p => p.trim()) : [refVal];
+        const ref1 = parts[0];
+        const ref2 = hasSplit ? (ref1.substring(0, 5) + parts[1].slice(-2)) : '';
+
         currentCalculationData = {
+            isSplit: hasSplit,
             ref: refVal,
+            ref1: ref1,
+            ref2: ref2,
             date: dateVal,
             transfer: transferVal,
             address1: address1Val,
@@ -430,8 +585,12 @@ function doGet(e) {
             desc: descVal,
             qty: qtyVal,
             cnyRate: cnyRateVal,
+            cbmQty: cbmQtyVal,
+            cbmRate: cbmRateVal,
             markupRate: markupRate,
-            totalCny: totalCny
+            markupCbmRate: markupCbmRate,
+            totalCny: totalCny,
+            totalCbmCny: totalCbmCny
         };
 
         const syncUrl = inputGsheetUrl.value.trim();
@@ -473,28 +632,22 @@ function doGet(e) {
         // Clear all derived cells to show recalculation
         const computedCells = ['cell-c31', 'cell-d7', 'cell-e7', 'cell-e38'];
         computedCells.forEach(cellId => {
-            const el = document.getElementById(cellId);
-            el.textContent = '---';
-            el.classList.remove('pulse-animate');
+            document.querySelectorAll('#' + cellId).forEach(el => {
+                el.textContent = '---';
+                el.classList.remove('pulse-animate');
+            });
         });
 
-        // Sync raw inputs
-        document.getElementById('cell-e2').textContent = refVal;
-        document.getElementById('cell-e3').textContent = formatDateToDdMmmYyyy(dateVal);
-        document.getElementById('cell-transfer').textContent = transferVal;
-        document.getElementById('cell-address-1').textContent = address1Val;
-        document.getElementById('cell-address-2').textContent = address2Val;
-        document.getElementById('cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">${itemsVal}</span>`;
-        document.getElementById('cell-cbm').innerHTML = `<span class="print-only-label">CBM</span><span class="value-span">${cbmVal}</span>`;
-        document.getElementById('cell-a7').textContent = formatQty(qtyVal);
-        document.getElementById('cell-c7').textContent = descVal;
-        document.getElementById('cell-c29').innerHTML = `<span class="print-only-label">CNY</span><span class="value-span">${formatRate(cnyRateVal)}</span>`;
+        // Re-run rendering of base template pages before animation
+        runInitialCalculations();
 
         // Cancel any active animation loops
         cancelAnimationFrame(animationFrameId);
         activePaths = [];
         particles = [];
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (ctx && canvas) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
 
         // Define Sequential Formula Animation Steps
         const steps = [
@@ -506,9 +659,18 @@ function doGet(e) {
                 duration: 1000,
                 formulaText: `${formatRate(cnyRateVal)} × 1.05 = ${formatRate(markupRate)}`,
                 onComplete: () => {
-                    const cell = document.getElementById('cell-c31');
-                    cell.innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupRate)}</span>`;
-                    cell.classList.add('pulse-animate');
+                    const p1 = document.querySelector('.invoice-page:nth-child(1)');
+                    if (p1) {
+                        const cell = p1.querySelector('#cell-c31');
+                        cell.innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupRate)}</span>`;
+                        cell.classList.add('pulse-animate');
+                    }
+                    const p2 = document.querySelector('.invoice-page:nth-child(2)');
+                    if (p2) {
+                        const cell = p2.querySelector('#cell-c31');
+                        cell.innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupCbmRate)}</span>`;
+                        cell.classList.add('pulse-animate');
+                    }
                 }
             },
             {
@@ -519,9 +681,18 @@ function doGet(e) {
                 duration: 1200,
                 formulaText: `D7 = C31 (${formatRate(markupRate)})`,
                 onComplete: () => {
-                    const cell = document.getElementById('cell-d7');
-                    cell.textContent = formatRate(markupRate);
-                    cell.classList.add('pulse-animate');
+                    const p1 = document.querySelector('.invoice-page:nth-child(1)');
+                    if (p1) {
+                        const cell = p1.querySelector('#cell-d7');
+                        cell.textContent = formatRate(markupRate);
+                        cell.classList.add('pulse-animate');
+                    }
+                    const p2 = document.querySelector('.invoice-page:nth-child(2)');
+                    if (p2) {
+                        const cell = p2.querySelector('#cell-d7');
+                        cell.textContent = Math.round(markupCbmRate).toLocaleString('en-US');
+                        cell.classList.add('pulse-animate');
+                    }
                 }
             },
             {
@@ -534,9 +705,18 @@ function doGet(e) {
                 duration: 1300,
                 formulaText: `${qtyVal} × ${formatRate(markupRate)} = ${formatMoney(totalCny)}`,
                 onComplete: () => {
-                    const cell = document.getElementById('cell-e7');
-                    cell.textContent = formatMoney(totalCny);
-                    cell.classList.add('pulse-animate');
+                    const p1 = document.querySelector('.invoice-page:nth-child(1)');
+                    if (p1) {
+                        const cell = p1.querySelector('#cell-e7');
+                        cell.textContent = formatMoney(totalCny);
+                        cell.classList.add('pulse-animate');
+                    }
+                    const p2 = document.querySelector('.invoice-page:nth-child(2)');
+                    if (p2) {
+                        const cell = p2.querySelector('#cell-e7');
+                        cell.textContent = formatMoney(totalCbmCny);
+                        cell.classList.add('pulse-animate');
+                    }
                 }
             },
             {
@@ -548,10 +728,19 @@ function doGet(e) {
                 duration: 1000,
                 formulaText: `E38 = E7 (${formatMoney(totalCny)})`,
                 onComplete: () => {
-                    const cell = document.getElementById('cell-e38');
-                    cell.textContent = formatMoney(totalCny);
-                    cell.classList.add('pulse-animate');
-                    triggerConfetti('cell-e38');
+                    const p1 = document.querySelector('.invoice-page:nth-child(1)');
+                    if (p1) {
+                        const cell = p1.querySelector('#cell-e38');
+                        cell.textContent = formatMoney(totalCny);
+                        cell.classList.add('pulse-animate');
+                        triggerConfetti('cell-e38');
+                    }
+                    const p2 = document.querySelector('.invoice-page:nth-child(2)');
+                    if (p2) {
+                        const cell = p2.querySelector('#cell-e38');
+                        cell.textContent = formatMoney(totalCbmCny);
+                        cell.classList.add('pulse-animate');
+                    }
                 }
             }
         ];
@@ -871,7 +1060,7 @@ function doGet(e) {
      * Toggle grid lines on sheet simulation
      */
     function toggleGrid() {
-        sheet.classList.toggle('hide-grid');
+        document.querySelectorAll('.google-sheet').forEach(s => s.classList.toggle('hide-grid'));
         btnToggleGrid.classList.toggle('active');
     }
 
@@ -881,15 +1070,27 @@ function doGet(e) {
     function toggleRows() {
         isRowsExpanded = !isRowsExpanded;
         
+        document.querySelectorAll('.collapsible-rows').forEach(container => {
+            if (isRowsExpanded) {
+                container.classList.add('expanded');
+                container.classList.remove('collapsed');
+            } else {
+                container.classList.remove('expanded');
+                container.classList.add('collapsed');
+            }
+        });
+
+        document.querySelectorAll('.collapsed-rows-indicator').forEach(indicator => {
+            if (isRowsExpanded) {
+                indicator.querySelector('.indicator-text').innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Click to collapse empty rows (11 - 24)';
+            } else {
+                indicator.querySelector('.indicator-text').innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Rows 11 - 24 collapsed (Empty)';
+            }
+        });
+
         if (isRowsExpanded) {
-            collapsibleRowsContainer.classList.add('expanded');
-            collapsibleRowsContainer.classList.remove('collapsed');
-            collapsedIndicator.querySelector('.indicator-text').innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Click to collapse empty rows (11 - 24)';
             btnToggleRows.classList.add('active');
         } else {
-            collapsibleRowsContainer.classList.remove('expanded');
-            collapsibleRowsContainer.classList.add('collapsed');
-            collapsedIndicator.querySelector('.indicator-text').innerHTML = '<i class="fa-solid fa-arrows-up-down"></i> Rows 11 - 24 collapsed (Empty)';
             btnToggleRows.classList.remove('active');
         }
 
@@ -904,12 +1105,17 @@ function doGet(e) {
      */
     function toggleTheme() {
         isDarkTheme = !isDarkTheme;
+        document.querySelectorAll('.google-sheet').forEach(s => {
+            if (isDarkTheme) {
+                s.setAttribute('data-sheet-theme', 'dark');
+            } else {
+                s.removeAttribute('data-sheet-theme');
+            }
+        });
         if (isDarkTheme) {
-            sheet.setAttribute('data-sheet-theme', 'dark');
             btnTheme.querySelector('i').className = 'fa-solid fa-sun';
             btnTheme.classList.add('active');
         } else {
-            sheet.removeAttribute('data-sheet-theme');
             btnTheme.querySelector('i').className = 'fa-solid fa-moon';
             btnTheme.classList.remove('active');
         }
@@ -1028,24 +1234,27 @@ function doGet(e) {
                     }
 
                     const colY = (row[24] || '').trim();
-                    const refVal = colY.substring(0, 7);
-                    
-                    // Reference # - first 7 characters of col Y
-                    inputRef.value = refVal;
+                    if (colY.includes('/')) {
+                        inputRef.value = colY;
+                        const parts = colY.split('/').map(p => p.trim());
+                        const ref1 = parts[0];
+                        const ref2 = ref1.substring(0, 5) + parts[1].slice(-2);
+                        inputItems.value = ref1;
+                        inputCbm.value = ref2;
+                    } else {
+                        const refVal = colY.substring(0, 7);
+                        inputRef.value = refVal;
+                        inputItems.value = refVal;
+                        const last3 = colY.length >= 3 ? colY.slice(-3) : colY;
+                        const cbmVal = refVal.slice(0, 4) + last3;
+                        inputCbm.value = cbmVal;
+                    }
 
                     // Date - col V (index 21)
                     const dateVal = cleanDate(row[21]);
                     if (dateVal) {
                         inputDate.value = dateVal;
                     }
-
-                    // ITEMS - same as Reference #
-                    inputItems.value = refVal;
-
-                    // CBM - replace last 3 chars of Reference # with last 3 chars of col Y
-                    const last3 = colY.length >= 3 ? colY.slice(-3) : colY;
-                    const cbmVal = refVal.slice(0, 4) + last3;
-                    inputCbm.value = cbmVal;
 
                     // Description - Col C (index 2)
                     inputDesc.value = (row[2] || '').trim();
@@ -1057,6 +1266,14 @@ function doGet(e) {
                     // CNY Rate - Col O (index 14)
                     const cnyRateVal = parseFloat((row[14] || '').replace(/,/g, '')) || 0;
                     inputCnyRate.value = cnyRateVal;
+
+                    // CBM - Col S (index 18)
+                    const cbmQtyVal = parseFloat((row[18] || '').replace(/,/g, '')) || 0;
+                    inputCbmQty.value = cbmQtyVal;
+
+                    // CBM Rate - Col T (index 19)
+                    const cbmRateVal = parseFloat((row[19] || '').replace(/,/g, '')) || 0;
+                    inputCbmRate.value = cbmRateVal;
 
                     // Trigger the calculations
                     runInitialCalculations();
@@ -1156,7 +1373,7 @@ function doGet(e) {
     }
 
     function flashInputs() {
-        const inputs = [inputRef, inputDate, inputItems, inputCbm, inputDesc, inputQty, inputCnyRate];
+        const inputs = [inputRef, inputDate, inputItems, inputCbm, inputDesc, inputQty, inputCnyRate, inputCbmQty, inputCbmRate];
         inputs.forEach(input => {
             input.style.transition = 'background-color 0.3s ease';
             input.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
