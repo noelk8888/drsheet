@@ -553,7 +553,7 @@ function doGet(e) {
                     id = fileDMatch[1];
                 }
                 if (id) {
-                    return `https://drive.google.com/uc?export=download&id=${id}`;
+                    return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
                 }
                 return url; // Fallback
             }
