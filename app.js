@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sheet.getRange("C4").setValue(data.address2);
     
     // Write line item details Page 1
-    sheet.getRange("A7").setValue(data.qty);
+    sheet.getRange("A7").setValue(data.qty).setNumberFormat("#,##0");
     sheet.getRange("C7").setValue(data.desc);
     sheet.getRange("C8").setValue("ITEMS");
     
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sheet.getRange("C26").setValue("Ref# " + data.ref2);
     
     // Write base rate Page 1
-    sheet.getRange("C29").setValue(data.cnyRate);
+    sheet.getRange("C29").setValue(data.cnyRate).setNumberFormat("0.0000");
 
     // Write image Page 1 (Row 45)
     if (data.image1) {
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sheet.getRange("I3").setValue(data.address1);
       sheet.getRange("I4").setValue(data.address2);
       
-      sheet.getRange("G7").setValue(data.cbmQty);
+      sheet.getRange("G7").setValue(data.cbmQty).setNumberFormat("0.0000");
       sheet.getRange("I7").setValue(data.desc);
       sheet.getRange("I8").setValue("CBM");
       
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sheet.getRange("H29:I31").clearContent();
       
       // Write Unit Price directly to J7 for Page 2
-      sheet.getRange("J7").setValue(data.markupCbmRate);
+      sheet.getRange("J7").setValue(data.markupCbmRate).setNumberFormat("#,##0");
       
       // Write image Page 2 (Row 45)
       if (data.image2) {
