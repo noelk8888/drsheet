@@ -47,7 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
       
       sheet.getRange("I25").setValue("Ref#- " + data.items + ".");
       sheet.getRange("I26").setValue("Ref#- " + data.cbm + ".");
-      sheet.getRange("I29").setValue(data.cbmRate);
+      
+      // Clear CNY breakdown on Page 2
+      sheet.getRange("H29:I31").clearContent();
+      
+      // Write Unit Price directly to J7 for Page 2
+      sheet.getRange("J7").setValue(data.markupCbmRate);
     }
     
     // Force spreadsheet to flush and recalculate formulas
@@ -381,7 +386,7 @@ function doGet(e) {
 
         pagesToCreate.forEach((pageConfig, index) => {
             const pageEl = document.createElement('div');
-            pageEl.className = 'invoice-page';
+            pageEl.className = 'sheet-page';
             pageEl.innerHTML = invoicePageTemplate;
             
             const pageSheet = pageEl.querySelector('.google-sheet');
@@ -662,13 +667,13 @@ function doGet(e) {
                 duration: 1000,
                 formulaText: `${formatRate(cnyRateVal)} × 1.05 = ${formatRate(markupRate)}`,
                 onComplete: () => {
-                    const p1 = document.querySelector('.invoice-page:nth-child(1)');
+                    const p1 = document.querySelector('.sheet-page:nth-child(1)');
                     if (p1) {
                         const cell = p1.querySelector('#cell-c31');
                         cell.innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupRate)}</span>`;
                         cell.classList.add('pulse-animate');
                     }
-                    const p2 = document.querySelector('.invoice-page:nth-child(2)');
+                    const p2 = document.querySelector('.sheet-page:nth-child(2)');
                     if (p2) {
                         const cell = p2.querySelector('#cell-c31');
                         cell.innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupCbmRate)}</span>`;
@@ -684,13 +689,13 @@ function doGet(e) {
                 duration: 1200,
                 formulaText: `D7 = C31 (${formatRate(markupRate)})`,
                 onComplete: () => {
-                    const p1 = document.querySelector('.invoice-page:nth-child(1)');
+                    const p1 = document.querySelector('.sheet-page:nth-child(1)');
                     if (p1) {
                         const cell = p1.querySelector('#cell-d7');
                         cell.textContent = formatRate(markupRate);
                         cell.classList.add('pulse-animate');
                     }
-                    const p2 = document.querySelector('.invoice-page:nth-child(2)');
+                    const p2 = document.querySelector('.sheet-page:nth-child(2)');
                     if (p2) {
                         const cell = p2.querySelector('#cell-d7');
                         cell.textContent = Math.round(markupCbmRate).toLocaleString('en-US');
@@ -708,13 +713,13 @@ function doGet(e) {
                 duration: 1300,
                 formulaText: `${qtyVal} × ${formatRate(markupRate)} = ${formatMoney(totalCny)}`,
                 onComplete: () => {
-                    const p1 = document.querySelector('.invoice-page:nth-child(1)');
+                    const p1 = document.querySelector('.sheet-page:nth-child(1)');
                     if (p1) {
                         const cell = p1.querySelector('#cell-e7');
                         cell.textContent = formatMoney(totalCny);
                         cell.classList.add('pulse-animate');
                     }
-                    const p2 = document.querySelector('.invoice-page:nth-child(2)');
+                    const p2 = document.querySelector('.sheet-page:nth-child(2)');
                     if (p2) {
                         const cell = p2.querySelector('#cell-e7');
                         cell.textContent = formatMoney(totalCbmCny);
