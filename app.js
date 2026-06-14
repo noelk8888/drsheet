@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const APPS_SCRIPT_SOURCE = `function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss = SpreadsheetApp.openById("1azRoUDoaCwqpzIftBMrCWGkURmkdLmfdMVJfTkQh3hM");
     var sheet = ss.getSheetByName("ISSUE DR") || ss.getSheets()[0];
     
     // Write metadata
