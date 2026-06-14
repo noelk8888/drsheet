@@ -1149,3 +1149,35 @@ body {
 .row-input-wrapper.loading .btn-fetch-icon i {
     animation: fa-spin 1.5s infinite linear;
 }
+
+/* Back Page Images */
+.image-back-page {
+    page-break-before: always;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    overflow: hidden;
+    background-color: white;
+}
+
+.back-page-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.back-page-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.error-text {
+    color: #ef4444;
+    font-weight: 500;
+    text-align: center;
+    padding: 2rem;
+}

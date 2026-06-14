@@ -505,6 +505,31 @@ function doGet(e) {
             }
 
             sheetContainer.appendChild(pageEl);
+
+            // Add back page image if available
+            const imageUrl = index === 0 ? document.getElementById('input-image1').value : document.getElementById('input-image2').value;
+            
+            function getEmbeddableDriveUrl(url) {
+                if (!url) return '';
+                const match = url.match(/[?&]id=([^&]+)/);
+                if (match && match[1]) {
+                    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                }
+                return url; // Fallback
+            }
+
+            const embedUrl = getEmbeddableDriveUrl(imageUrl);
+            
+            if (embedUrl) {
+                const imgPageEl = document.createElement('div');
+                imgPageEl.className = 'sheet-page image-back-page';
+                imgPageEl.innerHTML = `
+                    <div class="back-page-container">
+                        <img src="${embedUrl}" class="back-page-img" alt="Back Page ${index + 1}" onerror="this.parentElement.innerHTML = '<div class=\\'error-text\\'>Failed to load image. Ensure it is public.</div>'">
+                    </div>
+                `;
+                sheetContainer.appendChild(imgPageEl);
+            }
         });
 
         // Re-setup canvas on the first sheet
@@ -667,13 +692,15 @@ function doGet(e) {
                 duration: 1000,
                 formulaText: `${formatRate(cnyRateVal)} × 1.05 = ${formatRate(markupRate)}`,
                 onComplete: () => {
-                    const p1 = document.querySelector('.sheet-page:nth-child(1)');
+                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
+                    const p1 = invoicePages[0];
                     if (p1) {
                         const cell = p1.querySelector('#cell-c31');
                         cell.innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupRate)}</span>`;
                         cell.classList.add('pulse-animate');
                     }
-                    const p2 = document.querySelector('.sheet-page:nth-child(2)');
+                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
+                    const p2 = invoicePages[1];
                     if (p2) {
                         const cell = p2.querySelector('#cell-c31');
                         cell.innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(markupCbmRate)}</span>`;
@@ -689,13 +716,15 @@ function doGet(e) {
                 duration: 1200,
                 formulaText: `D7 = C31 (${formatRate(markupRate)})`,
                 onComplete: () => {
-                    const p1 = document.querySelector('.sheet-page:nth-child(1)');
+                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
+                    const p1 = invoicePages[0];
                     if (p1) {
                         const cell = p1.querySelector('#cell-d7');
                         cell.textContent = formatRate(markupRate);
                         cell.classList.add('pulse-animate');
                     }
-                    const p2 = document.querySelector('.sheet-page:nth-child(2)');
+                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
+                    const p2 = invoicePages[1];
                     if (p2) {
                         const cell = p2.querySelector('#cell-d7');
                         cell.textContent = Math.round(markupCbmRate).toLocaleString('en-US');
@@ -713,13 +742,15 @@ function doGet(e) {
                 duration: 1300,
                 formulaText: `${qtyVal} × ${formatRate(markupRate)} = ${formatMoney(totalCny)}`,
                 onComplete: () => {
-                    const p1 = document.querySelector('.sheet-page:nth-child(1)');
+                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
+                    const p1 = invoicePages[0];
                     if (p1) {
                         const cell = p1.querySelector('#cell-e7');
                         cell.textContent = formatMoney(totalCny);
                         cell.classList.add('pulse-animate');
                     }
-                    const p2 = document.querySelector('.sheet-page:nth-child(2)');
+                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
+                    const p2 = invoicePages[1];
                     if (p2) {
                         const cell = p2.querySelector('#cell-e7');
                         cell.textContent = formatMoney(totalCbmCny);
@@ -736,14 +767,16 @@ function doGet(e) {
                 duration: 1000,
                 formulaText: `E38 = E7 (${formatMoney(totalCny)})`,
                 onComplete: () => {
-                    const p1 = document.querySelector('.invoice-page:nth-child(1)');
+                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
+                    const p1 = invoicePages[0];
                     if (p1) {
                         const cell = p1.querySelector('#cell-e38');
                         cell.textContent = formatMoney(totalCny);
                         cell.classList.add('pulse-animate');
                         triggerConfetti('cell-e38');
                     }
-                    const p2 = document.querySelector('.invoice-page:nth-child(2)');
+                    const invoicePages = document.querySelectorAll('.sheet-page:not(.image-back-page)');
+                    const p2 = invoicePages[1];
                     if (p2) {
                         const cell = p2.querySelector('#cell-e38');
                         cell.textContent = formatMoney(totalCbmCny);
@@ -1257,6 +1290,10 @@ function doGet(e) {
                         const cbmVal = refVal.slice(0, 4) + last3;
                         inputCbm.value = cbmVal;
                     }
+
+                    // Extract Image URLs (Column D = index 3, Column R = index 17)
+                    document.getElementById('input-image1').value = (row[3] || '').trim();
+                    document.getElementById('input-image2').value = (row[17] || '').trim();
 
                     // Date - col V (index 21)
                     const dateVal = cleanDate(row[21]);
