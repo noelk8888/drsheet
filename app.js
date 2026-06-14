@@ -542,6 +542,22 @@ function doGet(e) {
                 return url; // Fallback
             }
 
+            function getGsheetImageUrl(url) {
+                if (!url) return '';
+                let id = null;
+                const idMatch = url.match(/[?&]id=([^&]+)/);
+                const fileDMatch = url.match(/\/file\/d\/([^\/]+)/);
+                if (idMatch && idMatch[1]) {
+                    id = idMatch[1];
+                } else if (fileDMatch && fileDMatch[1]) {
+                    id = fileDMatch[1];
+                }
+                if (id) {
+                    return `https://drive.google.com/uc?export=download&id=${id}`;
+                }
+                return url; // Fallback
+            }
+
             const embedUrl = getEmbeddableDriveUrl(imageUrl);
             
             if (embedUrl) {
@@ -630,8 +646,8 @@ function doGet(e) {
 
         const img1 = document.getElementById('input-image1')?.value;
         const img2 = document.getElementById('input-image2')?.value;
-        const image1Url = img1 ? getEmbeddableDriveUrl(img1) : '';
-        const image2Url = img2 ? getEmbeddableDriveUrl(img2) : '';
+        const image1Url = img1 ? getGsheetImageUrl(img1) : '';
+        const image2Url = img2 ? getGsheetImageUrl(img2) : '';
 
         currentCalculationData = {
             isSplit: hasSplit,
