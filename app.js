@@ -380,7 +380,7 @@ function doGet(e) {
         const markupRate = cnyRateVal * 1.05;
         const totalCny = qtyVal * markupRate;
 
-        const markupCbmRate = cbmRateVal * 1.05;
+        const markupCbmRate = cbmRateVal;
         const totalCbmCny = cbmQtyVal * markupCbmRate;
 
         // Clear container
@@ -638,7 +638,7 @@ function doGet(e) {
         const markupRate = cnyRateVal * 1.05;
         const totalCny = qtyVal * markupRate;
 
-        const markupCbmRate = cbmRateVal * 1.05;
+        const markupCbmRate = cbmRateVal;
         const totalCbmCny = cbmQtyVal * markupCbmRate;
 
         const hasSplit = refVal.includes('/');
