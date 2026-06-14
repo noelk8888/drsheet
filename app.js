@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
       sheet.getRange("G7").setValue(data.cbmQty);
       sheet.getRange("I7").setValue(data.desc);
       
-      sheet.getRange("I26").setValue(data.ref2);
+      sheet.getRange("I25").setValue(data.items);
+      sheet.getRange("I26").setValue(data.cbm);
       sheet.getRange("I29").setValue(data.cbmRate);
     }
     
