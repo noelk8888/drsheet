@@ -23,10 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Write line item details Page 1
     sheet.getRange("A7").setValue(data.qty);
     sheet.getRange("C7").setValue(data.desc);
+    sheet.getRange("C8").setValue("ITEMS");
     
     // Write logistics summary Page 1
-    sheet.getRange("C25").setValue(data.items);
-    sheet.getRange("C26").setValue(data.cbm);
+    sheet.getRange("C25").setValue("Ref#- " + data.items + ".");
+    sheet.getRange("C26").setValue("Ref#- " + data.cbm + ".");
     
     // Write base rate Page 1
     sheet.getRange("C29").setValue(data.cnyRate);
@@ -42,9 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
       
       sheet.getRange("G7").setValue(data.cbmQty);
       sheet.getRange("I7").setValue(data.desc);
+      sheet.getRange("I8").setValue("CBM");
       
-      sheet.getRange("I25").setValue(data.items);
-      sheet.getRange("I26").setValue(data.cbm);
+      sheet.getRange("I25").setValue("Ref#- " + data.items + ".");
+      sheet.getRange("I26").setValue("Ref#- " + data.cbm + ".");
       sheet.getRange("I29").setValue(data.cbmRate);
     }
     
