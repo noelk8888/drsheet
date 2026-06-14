@@ -507,7 +507,7 @@ function doGet(e) {
             sheetContainer.appendChild(pageEl);
 
             // Add back page image if available
-            const imageUrl = index === 0 ? document.getElementById('input-image1').value : document.getElementById('input-image2').value;
+            const imageUrl = index === 0 ? document.getElementById('input-image1')?.value : document.getElementById('input-image2')?.value;
             
             function getEmbeddableDriveUrl(url) {
                 if (!url) return '';
