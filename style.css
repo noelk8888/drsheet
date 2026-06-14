@@ -1063,7 +1063,7 @@ body {
 }
 
 /* Mobile responsiveness: hide spreadsheet preview, show only control panel */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
     .sheet-viewport {
         display: none !important;
     }
