@@ -88,8 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
         sheet.getRange("G45").clearContent();
       }
     } else {
-      // Clear image Page 2 if not split
+      // Clear Page 2 if not split
+      sheet.getRange("K2:K3").clearContent();
+      sheet.getRange("I2:I4").clearContent();
+      sheet.getRange("G7").clearContent();
+      sheet.getRange("I7:I8").clearContent();
+      sheet.getRange("I25:I26").clearContent();
+      sheet.getRange("H29:J31").clearContent();
       sheet.getRange("G45").clearContent();
+      sheet.getRange("J7").clearContent();
     }
     
     // Force spreadsheet to flush and recalculate formulas
@@ -436,8 +443,12 @@ function doGet(e) {
             ref2Str = ref1Str + " (1)";
         }
 
-        const hasSplit = true; // Always treat as a split to generate both pages
-        let pagesToCreate = [{ ref: ref1Str }, { ref: ref2Str }];
+        const isInt = document.getElementById('radio-int')?.checked || false;
+        const hasSplit = !isInt; // Generate Page 2 only if INT is not active
+        let pagesToCreate = [{ ref: ref1Str }];
+        if (hasSplit) {
+            pagesToCreate.push({ ref: ref2Str });
+        }
         const parts = [ref1Str, ref2Str];
 
         pagesToCreate.forEach((pageConfig, index) => {
@@ -499,7 +510,6 @@ function doGet(e) {
             pageEl.querySelector('.sheet-row[data-row="7"] .col-b').textContent = currentUnit;
             pageEl.querySelector('#cell-c7').textContent = descVal;
             
-            const isInt = document.getElementById('radio-int')?.checked || false;
             if (isInt && index === 0) {
                 const colQVal = parseFloat(document.getElementById('input-row-num').dataset.colq) || 0;
                 pageEl.querySelector('#cell-a7').textContent = '';
@@ -735,13 +745,13 @@ function doGet(e) {
         } else {
             ref2 = ref1 + " (1)";
         }
-        const hasSplit = true;
+        const isInt = document.getElementById('radio-int')?.checked || false;
+        const hasSplit = !isInt;
 
         const img1 = document.getElementById('input-image1')?.value;
         const img2 = document.getElementById('input-image2')?.value;
         const image1Url = img1 ? getGsheetImageUrl(img1) : '';
         const image2Url = img2 ? getGsheetImageUrl(img2) : '';
-        const isInt = document.getElementById('radio-int')?.checked || false;
         const colQVal = parseFloat(document.getElementById('input-row-num').dataset.colq) || 0;
 
         currentCalculationData = {
