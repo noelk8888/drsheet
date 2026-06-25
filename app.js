@@ -162,6 +162,17 @@ function doGet(e) {
                 fetchRowData(parseInt(inputRowNum.value));
             }
         });
+
+        // Auto-fetch row data if 'row' parameter is present in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const rowParam = urlParams.get('row');
+        if (rowParam) {
+            inputRowNum.value = rowParam;
+            // Delay slightly to ensure UI is ready before fetching
+            setTimeout(() => {
+                fetchRowData(parseInt(rowParam));
+            }, 300);
+        }
     }
 
     // Modal Event Listeners
@@ -204,13 +215,13 @@ function doGet(e) {
     });
 
     /**
-     * Set reference input default based on current year and month (YY-MM)
+     * Set reference input default based on current year and month (YY-MM-)
      */
     function initRefInput() {
         const today = new Date();
         const yy = String(today.getFullYear()).slice(-2);
         const mm = String(today.getMonth() + 1).padStart(2, '0');
-        inputRef.value = `${yy}-${mm}`;
+        inputRef.value = `${yy}-${mm}-`;
     }
 
     /**
