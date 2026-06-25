@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Write image Page 1 (Row 45)
     if (data.image1) {
-      sheet.getRange("A45").setFormula('=IMAGE("' + data.image1 + '", 2)');
+      sheet.getRange("A45").setFormula('=IMAGE("' + data.image1 + '", 1)');
     } else {
       sheet.getRange("A45").clearContent();
     }
@@ -71,11 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Write image Page 2 (Row 45)
       if (data.image2) {
-        if (data.isInt) {
-          sheet.getRange("G45").setFormula('=IMAGE("' + data.image2 + '", 1)');
-        } else {
-          sheet.getRange("G45").setFormula('=IMAGE("' + data.image2 + '", 2)');
-        }
+        sheet.getRange("G45").setFormula('=IMAGE("' + data.image2 + '", 1)');
       } else {
         sheet.getRange("G45").clearContent();
       }
