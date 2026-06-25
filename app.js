@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sheet.getRange("A7").clearContent();
       sheet.getRange("D7").clearContent();
       sheet.getRange("E7").setValue(data.colQ).setNumberFormat("#,##0.00");
-      sheet.getRange("B8:C31").clearContent();
+      sheet.getRange("B8:C24").clearContent();
     } else {
       sheet.getRange("A7").setValue(data.qty).setNumberFormat("#,##0");
       sheet.getRange("C8").setValue("ITEMS");
@@ -495,7 +495,7 @@ function doGet(e) {
                 pageEl.querySelector('#cell-e7').textContent = formatMoney(colQVal);
                 pageEl.querySelector('#cell-e38').textContent = formatMoney(colQVal);
                 
-                for (let i = 8; i <= 31; i++) {
+                for (let i = 8; i <= 24; i++) {
                     const rowEl = pageEl.querySelector(`.sheet-row[data-row="${i}"]`);
                     if (rowEl) {
                         const colB = rowEl.querySelector('.col-b');
