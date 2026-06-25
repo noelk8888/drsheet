@@ -32,13 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
       sheet.getRange("A7").setValue(data.qty).setNumberFormat("#,##0");
       sheet.getRange("C8").setValue("ITEMS");
       
-      // Restore labels in case they were previously blanked by an INT generation
+      // Restore labels and formulas in case they were previously blanked by an INT generation
+      sheet.getRange("D7").setFormula("=C29*C30");
+      sheet.getRange("E7").setFormula("=A7*D7");
+      
       sheet.getRange("B25").setValue("ITEMS:");
       sheet.getRange("B26").setValue("CBM:");
       sheet.getRange("B29").setValue("CNY:");
       sheet.getRange("B30").setValue("factor:");
-      sheet.getRange("C30").setValue("1.05");
+      sheet.getRange("C30").setValue(1.05);
       sheet.getRange("B31").setValue("RATE:");
+      sheet.getRange("C31").setFormula("=C29*C30");
 
       // Write logistics summary Page 1
       sheet.getRange("C25").setValue("Ref# " + data.ref1);
