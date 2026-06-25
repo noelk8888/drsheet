@@ -27,11 +27,19 @@ document.addEventListener('DOMContentLoaded', () => {
       sheet.getRange("A7").clearContent();
       sheet.getRange("D7").clearContent();
       sheet.getRange("E7").setValue(data.colQ).setNumberFormat("#,##0.00");
-      sheet.getRange("B8:C24").clearContent();
+      sheet.getRange("B8:C31").clearContent();
     } else {
       sheet.getRange("A7").setValue(data.qty).setNumberFormat("#,##0");
       sheet.getRange("C8").setValue("ITEMS");
       
+      // Restore labels in case they were previously blanked by an INT generation
+      sheet.getRange("B25").setValue("ITEMS:");
+      sheet.getRange("B26").setValue("CBM:");
+      sheet.getRange("B29").setValue("CNY:");
+      sheet.getRange("B30").setValue("factor:");
+      sheet.getRange("C30").setValue("1.05");
+      sheet.getRange("B31").setValue("RATE:");
+
       // Write logistics summary Page 1
       sheet.getRange("C25").setValue("Ref# " + data.ref1);
       sheet.getRange("C26").setValue("Ref# " + data.ref2);
@@ -495,7 +503,7 @@ function doGet(e) {
                 pageEl.querySelector('#cell-e7').textContent = formatMoney(colQVal);
                 pageEl.querySelector('#cell-e38').textContent = formatMoney(colQVal);
                 
-                for (let i = 8; i <= 24; i++) {
+                for (let i = 8; i <= 31; i++) {
                     const rowEl = pageEl.querySelector(`.sheet-row[data-row="${i}"]`);
                     if (rowEl) {
                         const colB = rowEl.querySelector('.col-b');
@@ -515,6 +523,24 @@ function doGet(e) {
                 // Restore C8 text
                 const c8 = pageEl.querySelector('.sheet-row[data-row="8"] .col-c');
                 if (c8) c8.textContent = index === 0 ? 'ITEMS' : 'CBM';
+                
+                // Restore labels in case they were blanked out previously
+                const b25 = pageEl.querySelector('.sheet-row[data-row="25"] .col-b');
+                if (b25) b25.textContent = 'ITEMS:';
+                
+                const b26 = pageEl.querySelector('.sheet-row[data-row="26"] .col-b');
+                if (b26) b26.textContent = 'CBM:';
+                
+                const b29 = pageEl.querySelector('.sheet-row[data-row="29"] .col-b');
+                if (b29) b29.textContent = 'CNY:';
+                
+                const b30 = pageEl.querySelector('.sheet-row[data-row="30"] .col-b');
+                if (b30) b30.textContent = 'factor:';
+                const c30 = pageEl.querySelector('.sheet-row[data-row="30"] .col-c');
+                if (c30) c30.textContent = '1.05';
+                
+                const b31 = pageEl.querySelector('.sheet-row[data-row="31"] .col-b');
+                if (b31) b31.textContent = 'RATE:';
             }
             
             pageEl.querySelector('#cell-e4').textContent = index + 1;
@@ -529,8 +555,10 @@ function doGet(e) {
             const finalItemsVal = hasSplit ? parts[0] : refVal;
             const finalCbmVal = hasSplit ? (parts[0].substring(0, 5) + parts[1].slice(-2)) : cbmVal;
 
-            pageEl.querySelector('#cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">Ref# ${itemsVal || finalItemsVal}</span>`;
-            pageEl.querySelector('#cell-cbm').innerHTML = `<span class="print-only-label">CBM</span><span class="value-span">Ref# ${cbmVal || finalCbmVal}</span>`;
+            if (!isInt || index !== 0) {
+                pageEl.querySelector('#cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">Ref# ${itemsVal || finalItemsVal}</span>`;
+                pageEl.querySelector('#cell-cbm').innerHTML = `<span class="print-only-label">CBM</span><span class="value-span">Ref# ${cbmVal || finalCbmVal}</span>`;
+            }
 
             // Generate rows 11 to 24 dynamically inside pageEl
             const pageCollapsibleContainer = pageEl.querySelector('#collapsible-rows-container');
