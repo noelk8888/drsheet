@@ -21,16 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
     sheet.getRange("C4").setValue(data.address2);
     
     // Write line item details Page 1
-    sheet.getRange("A7").setValue(data.qty).setNumberFormat("#,##0");
     sheet.getRange("C7").setValue(data.desc);
-    sheet.getRange("C8").setValue("ITEMS");
     
-    // Write logistics summary Page 1
-    sheet.getRange("C25").setValue("Ref# " + data.ref1);
-    sheet.getRange("C26").setValue("Ref# " + data.ref2);
-    
-    // Write base rate Page 1
-    sheet.getRange("C29").setValue(data.cnyRate).setNumberFormat("0.0000");
+    if (data.isInt) {
+      sheet.getRange("A7").clearContent();
+      sheet.getRange("D7").clearContent();
+      sheet.getRange("E7").setValue(data.colQ).setNumberFormat("#,##0.00");
+      sheet.getRange("B8:C31").clearContent();
+    } else {
+      sheet.getRange("A7").setValue(data.qty).setNumberFormat("#,##0");
+      sheet.getRange("C8").setValue("ITEMS");
+      
+      // Write logistics summary Page 1
+      sheet.getRange("C25").setValue("Ref# " + data.ref1);
+      sheet.getRange("C26").setValue("Ref# " + data.ref2);
+      
+      // Write base rate Page 1
+      sheet.getRange("C29").setValue(data.cnyRate).setNumberFormat("0.0000");
+    }
 
     // Write image Page 1 (Row 45)
     if (data.image1) {
@@ -63,7 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Write image Page 2 (Row 45)
       if (data.image2) {
-        sheet.getRange("G45").setFormula('=IMAGE("' + data.image2 + '", 2)');
+        if (data.isInt) {
+          sheet.getRange("G45").setFormula('=IMAGE("' + data.image2 + '", 1)');
+        } else {
+          sheet.getRange("G45").setFormula('=IMAGE("' + data.image2 + '", 2)');
+        }
       } else {
         sheet.getRange("G45").clearContent();
       }
@@ -209,10 +221,18 @@ function doGet(e) {
     }
 
     // Sync input handlers for real-time visual feedback
-    const inputsToWatch = [inputRef, inputDate, inputItems, inputCbm, inputDesc, inputQty, inputCnyRate, inputCbmQty, inputCbmRate];
+    const inputsToWatch = [
+        inputQty, inputCnyRate, inputCbmQty, inputCbmRate
+    ];
+
     inputsToWatch.forEach(input => {
         input.addEventListener('input', runInitialCalculations);
     });
+
+    const radioInt = document.getElementById('radio-int');
+    if (radioInt) {
+        radioInt.addEventListener('change', runInitialCalculations);
+    }
 
     /**
      * Set reference input default based on current year and month (YY-MM-)
@@ -468,14 +488,39 @@ function doGet(e) {
             pageEl.querySelector('#cell-address-1').textContent = address1Val;
             pageEl.querySelector('#cell-address-2').textContent = address2Val;
             
-            pageEl.querySelector('#cell-a7').textContent = qtyText;
             pageEl.querySelector('.sheet-row[data-row="7"] .col-b').textContent = currentUnit;
             pageEl.querySelector('#cell-c7').textContent = descVal;
-            pageEl.querySelector('#cell-c29').innerHTML = `<span class="print-only-label">CNY</span><span class="value-span">${formatRate(currentRate)}</span>`;
-            pageEl.querySelector('#cell-c31').innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(currentMarkup)}</span>`;
-            pageEl.querySelector('#cell-d7').textContent = priceText;
-            pageEl.querySelector('#cell-e7').textContent = formatMoney(currentTotal);
-            pageEl.querySelector('#cell-e38').textContent = formatMoney(currentTotal);
+            
+            const isInt = document.getElementById('radio-int')?.checked || false;
+            if (isInt && index === 0) {
+                const colQVal = parseFloat(document.getElementById('input-row-num').dataset.colq) || 0;
+                pageEl.querySelector('#cell-a7').textContent = '';
+                pageEl.querySelector('#cell-d7').textContent = '';
+                pageEl.querySelector('#cell-e7').textContent = formatMoney(colQVal);
+                pageEl.querySelector('#cell-e38').textContent = formatMoney(colQVal);
+                
+                for (let i = 8; i <= 31; i++) {
+                    const rowEl = pageEl.querySelector(`.sheet-row[data-row="${i}"]`);
+                    if (rowEl) {
+                        const colB = rowEl.querySelector('.col-b');
+                        const colC = rowEl.querySelector('.col-c');
+                        if (colB) colB.innerHTML = '';
+                        if (colC) colC.innerHTML = '';
+                    }
+                }
+            } else {
+                pageEl.querySelector('#cell-a7').textContent = qtyText;
+                pageEl.querySelector('#cell-d7').textContent = priceText;
+                pageEl.querySelector('#cell-e7').textContent = formatMoney(currentTotal);
+                pageEl.querySelector('#cell-e38').textContent = formatMoney(currentTotal);
+                pageEl.querySelector('#cell-c29').innerHTML = `<span class="print-only-label">CNY</span><span class="value-span">${formatRate(currentRate)}</span>`;
+                pageEl.querySelector('#cell-c31').innerHTML = `<span class="print-only-label">RATE</span><span class="value-span">${formatRate(currentMarkup)}</span>`;
+                
+                // Restore C8 text
+                const c8 = pageEl.querySelector('.sheet-row[data-row="8"] .col-c');
+                if (c8) c8.textContent = index === 0 ? 'ITEMS' : 'CBM';
+            }
+            
             pageEl.querySelector('#cell-e4').textContent = index + 1;
 
             const itemsRow = pageEl.querySelector('.sheet-row[data-row="25"]');
@@ -661,8 +706,12 @@ function doGet(e) {
         const img2 = document.getElementById('input-image2')?.value;
         const image1Url = img1 ? getGsheetImageUrl(img1) : '';
         const image2Url = img2 ? getGsheetImageUrl(img2) : '';
+        const isInt = document.getElementById('radio-int')?.checked || false;
+        const colQVal = parseFloat(document.getElementById('input-row-num').dataset.colq) || 0;
 
         currentCalculationData = {
+            isInt: isInt,
+            colQ: colQVal,
             isSplit: hasSplit,
             ref: refVal,
             ref1: ref1,
@@ -1377,6 +1426,9 @@ function doGet(e) {
                     // CBM Rate - Col T (index 19)
                     const cbmRateVal = parseFloat((row[19] || '').replace(/,/g, '')) || 0;
                     inputCbmRate.value = cbmRateVal;
+
+                    // Store COL Q for INT option
+                    document.getElementById('input-row-num').dataset.colq = parseFloat((row[16] || '').replace(/,/g, '')) || 0;
 
                     // Trigger the calculations
                     runInitialCalculations();
