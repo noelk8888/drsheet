@@ -425,20 +425,20 @@ function doGet(e) {
         // Clear container
         sheetContainer.innerHTML = '';
 
-        const hasSplit = refVal.includes('/');
-        let pagesToCreate = [];
-
-        if (hasSplit) {
-            const parts = refVal.split('/').map(p => p.trim());
-            const ref1 = parts[0];
-            const ref2 = ref1.substring(0, 5) + parts[1].slice(-2);
-            pagesToCreate.push({ ref: ref1 });
-            pagesToCreate.push({ ref: ref2 });
+        const ref1Str = refVal.split('/')[0].trim();
+        let ref2Str;
+        const match = ref1Str.match(/\d+$/);
+        if (match) {
+            const numStr = match[0];
+            const nextNumStr = (parseInt(numStr, 10) + 1).toString().padStart(numStr.length, '0');
+            ref2Str = ref1Str.slice(0, -numStr.length) + nextNumStr;
         } else {
-            pagesToCreate.push({ ref: refVal });
+            ref2Str = ref1Str + " (1)";
         }
 
-        const parts = hasSplit ? refVal.split('/').map(p => p.trim()) : [refVal];
+        const hasSplit = true; // Always treat as a split to generate both pages
+        let pagesToCreate = [{ ref: ref1Str }, { ref: ref2Str }];
+        const parts = [ref1Str, ref2Str];
 
         pagesToCreate.forEach((pageConfig, index) => {
             const pageEl = document.createElement('div');
@@ -556,8 +556,8 @@ function doGet(e) {
             itemsRow.style.display = 'flex';
             cbmRow.style.display = 'flex';
 
-            const finalItemsVal = hasSplit ? parts[0] : refVal;
-            const finalCbmVal = hasSplit ? (parts[0].substring(0, 5) + parts[1].slice(-2)) : cbmVal;
+            const finalItemsVal = parts[0];
+            const finalCbmVal = parts[1];
 
             if (!isInt || index !== 0) {
                 pageEl.querySelector('#cell-items').innerHTML = `<span class="print-only-label">ITEMS</span><span class="value-span">Ref# ${itemsVal || finalItemsVal}</span>`;
@@ -633,7 +633,7 @@ function doGet(e) {
         setupCellInteractions();
 
         const ref1 = parts[0];
-        const ref2 = hasSplit ? (ref1.substring(0, 5) + parts[1].slice(-2)) : '';
+        const ref2 = parts[1];
 
         currentCalculationData = {
             isSplit: hasSplit,
@@ -725,10 +725,17 @@ function doGet(e) {
         const markupCbmRate = cbmRateVal;
         const totalCbmCny = cbmQtyVal * markupCbmRate;
 
-        const hasSplit = refVal.includes('/');
-        const parts = hasSplit ? refVal.split('/').map(p => p.trim()) : [refVal];
-        const ref1 = parts[0];
-        const ref2 = hasSplit ? (ref1.substring(0, 5) + parts[1].slice(-2)) : '';
+        const ref1 = refVal.split('/')[0].trim();
+        let ref2;
+        const match = ref1.match(/\d+$/);
+        if (match) {
+            const numStr = match[0];
+            const nextNumStr = (parseInt(numStr, 10) + 1).toString().padStart(numStr.length, '0');
+            ref2 = ref1.slice(0, -numStr.length) + nextNumStr;
+        } else {
+            ref2 = ref1 + " (1)";
+        }
+        const hasSplit = true;
 
         const img1 = document.getElementById('input-image1')?.value;
         const img2 = document.getElementById('input-image2')?.value;
