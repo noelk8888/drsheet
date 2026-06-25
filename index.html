@@ -20,15 +20,15 @@
         <!-- Control Panel (Left Sidebar) -->
         <aside class="control-panel">
             <div class="brand">
-                <div class="brand-icon">
-                    <i class="fa-solid fa-hashtag"></i>
-                </div>
-                <div class="brand-row-input">
+                <div class="brand-row-input" style="width: 100%;">
                     <label for="input-row-num">ROW#</label>
                     <div class="row-input-wrapper" id="row-input-wrapper">
-                        <input type="number" id="input-row-num" placeholder="e.g. 5" min="2">
+                        <input type="number" id="input-row-num" placeholder="e.g. 5" min="2" style="width: 80px;">
                         <button type="button" id="btn-fetch-row" class="btn-fetch-icon" title="Fetch Row Data">
                             <i class="fa-solid fa-cloud-arrow-down"></i>
+                        </button>
+                        <button type="button" id="btn-generate" class="btn-fetch-icon" title="Generate" style="width: auto; padding: 0 12px; font-family: 'Outfit', sans-serif; font-weight: 600;">
+                            <i class="fa-solid fa-wand-magic-sparkles" style="margin-right: 6px;"></i> Generate
                         </button>
                     </div>
                 </div>
@@ -150,11 +150,7 @@
                     </button>
                 </div>
 
-                <div class="action-buttons">
-                    <button type="button" id="btn-generate" class="btn btn-primary" style="width: 100%;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate
-                    </button>
-                </div>
+                <!-- Action Buttons moved to top header -->
             </form>
 
             <div class="footer-note">
