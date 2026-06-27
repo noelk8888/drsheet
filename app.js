@@ -1447,8 +1447,8 @@ function doGet(e) {
                     const img2 = document.getElementById('input-image2');
                     if (img2) img2.value = (row[17] || '').trim();
 
-                    // Date - col V (index 21)
-                    const dateVal = cleanDate(row[21]);
+                    // Date - col X (index 23)
+                    const dateVal = cleanDate(row[23]);
                     if (dateVal) {
                         inputDate.value = dateVal;
                     }
