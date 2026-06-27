@@ -52,8 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
       sheet.getRange("C29").setValue(data.cnyRate).setNumberFormat("0.0000");
     }
 
-    // Image population for Page 1 (Row 45) has been disabled per user request
-    sheet.getRange("A45").clearContent();
+    // Write image Page 1 (Row 45) -> Moved to B45 per user request
+    if (data.image1) {
+      sheet.getRange("B45").setFormula('=IMAGE("' + data.image1 + '", 1)');
+    } else {
+      sheet.getRange("B45").clearContent();
+    }
 
     // If split row, also write Page 2 details (G1:K44)
     if (data.isSplit) {
@@ -77,8 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Write Unit Price directly to J7 for Page 2
       sheet.getRange("J7").setValue(data.markupCbmRate).setNumberFormat("#,##0");
       
-      // Image population for Page 2 (Row 45) has been disabled per user request
-      sheet.getRange("G45").clearContent();
+      // Write image Page 2 (Row 45) -> Moved to H45 per user request
+      if (data.image2) {
+        sheet.getRange("H45").setFormula('=IMAGE("' + data.image2 + '", 1)');
+      } else {
+        sheet.getRange("H45").clearContent();
+      }
     } else {
       // Clear Page 2 if not split
       sheet.getRange("K2:K3").clearContent();
